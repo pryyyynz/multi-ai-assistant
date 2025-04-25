@@ -6,6 +6,9 @@ from contextlib import asynccontextmanager
 
 from services.document_service import DocumentQAService
 from routes.documents_qa import router
+from routes.cover_letter import cover_letter_router
+from services.api_key_validation import validate_api_key
+
 # Load environment variables
 load_dotenv()
 
@@ -43,6 +46,11 @@ def get_document_service():
 app.include_router(
     router,
     dependencies=[Depends(get_document_service)]
+)
+
+app.include_router(
+    cover_letter_router,
+    dependencies=[Depends(validate_api_key)]
 )
 
 if __name__ == "__main__":
