@@ -91,9 +91,9 @@ async def generate_cover_letter_from_cv_file(
     applying_role: str,
     company_name: str,
     tone: str = "professional",
-    additional_instructions: Optional[str] = None,
-    groq_api_key: str = None
-) -> Tuple[str, Dict]:
+    additional_instructions: Optional[str] = None, 
+    groq_api_key: str = os.getenv("GROQ_API_KEY")
+) -> Tuple[str, Dict]: 
     """
     Generate a personalized cover letter by processing a CV file and extracting information
     """

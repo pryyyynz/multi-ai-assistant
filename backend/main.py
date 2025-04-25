@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from services.document_service import DocumentQAService
 from routes.documents_qa import router
 from routes.cover_letter import cover_letter_router
-from services.api_key_validation import validate_api_key
+from services.api_key_validation import get_groq_api_key
 
 # Load environment variables
 load_dotenv()
@@ -50,7 +50,7 @@ app.include_router(
 
 app.include_router(
     cover_letter_router,
-    dependencies=[Depends(validate_api_key)]
+    dependencies=[Depends(get_groq_api_key)]
 )
 
 if __name__ == "__main__":
