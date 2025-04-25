@@ -10,7 +10,7 @@ router = APIRouter()
 def get_document_service(service: DocumentQAService = Depends()):
     return service
 
-@router.post("/upload")
+@router.post("/upload-qa")
 async def upload_documents(
     files: List[UploadFile] = File(...),
     service: DocumentQAService = Depends(get_document_service)
@@ -51,7 +51,7 @@ async def upload_documents(
     
     return JSONResponse(content={"results": results})
 
-@router.post("/ask")
+@router.post("/ask-qa")
 async def ask_question(
     question: str = Form(...),
     service: DocumentQAService = Depends(get_document_service)
