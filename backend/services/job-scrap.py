@@ -187,6 +187,5 @@ if __name__ == "__main__":
     print(f"\nTotal jobs collected: {len(all_jobs)}")
     
     # Save all collected jobs to CSV
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"ghanajob_listings_{timestamp}.csv"
+    filename = f"ghanajob_listings.csv"
     save_to_csv(all_jobs, filename)
