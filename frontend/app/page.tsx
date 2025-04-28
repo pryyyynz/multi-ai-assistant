@@ -39,7 +39,7 @@ export default function Home() {
       </div>
 
       {/* Feature Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-16">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-16">
         <Link href="/chat-pdf">
           <FeatureCard
             icon={<FileText className="h-12 w-12 text-gray-700" />}
@@ -66,6 +66,13 @@ export default function Home() {
             icon={<BarChart2 className="h-12 w-12 text-gray-700" />}
             title="CSV Explorer"
             description="Upload CSV files for data analysis"
+          />
+        </Link>
+        <Link href="/resume-builder">
+          <FeatureCard
+            icon={<FileText className="h-12 w-12 text-gray-700" />}
+            title="Resume Builder"
+            description="Create and download professional resumes"
           />
         </Link>
       </div>
