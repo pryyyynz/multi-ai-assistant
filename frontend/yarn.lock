@@ -215,6 +215,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@kurkle/color@^0.3.0":
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/@kurkle/color/-/color-0.3.4.tgz#4d4ff677e1609214fc71c580125ddddd86abcabf"
+  integrity sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==
+
 "@next/env@15.3.1":
   version "15.3.1"
   resolved "https://registry.yarnpkg.com/@next/env/-/env-15.3.1.tgz#fca98dcb90d92d555972cdbf03adf9aa982e2115"
@@ -1231,6 +1236,13 @@ canvg@^3.0.11:
     stackblur-canvas "^2.0.0"
     svg-pathdata "^6.0.3"
 
+chart.js@^4.4.9:
+  version "4.4.9"
+  resolved "https://registry.yarnpkg.com/chart.js/-/chart.js-4.4.9.tgz#602e2fc2462f0f7bb7b255eaa1b51f56a43a1362"
+  integrity sha512-EyZ9wWKgpAU0fLJ43YAEIF8sr5F2W3LqbS40ZJyHIner2lY14ufqv2VMp69MAiZ2rpwxEUxEhIH/0U3xyRynxg==
+  dependencies:
+    "@kurkle/color" "^0.3.0"
+
 chokidar@^3.6.0:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-3.6.0.tgz#197c6cc669ef2a8dc5e7b4d97ee4e092c3eb0d5b"
@@ -1823,6 +1835,11 @@ package-json-from-dist@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/package-json-from-dist/-/package-json-from-dist-1.0.1.tgz#4f1471a010827a86f94cfd9b0727e36d267de505"
   integrity sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==
+
+papaparse@^5.5.2:
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/papaparse/-/papaparse-5.5.2.tgz#fb67cc5a03ba8930cb435dc4641a25d6804bd4d7"
+  integrity sha512-PZXg8UuAc4PcVwLosEEDYjPyfWnTEhOrUfdv+3Bx+NuAb+5NhDmXzg5fHWmdCh1mP5p7JAZfFr3IMQfcntNAdA==
 
 path-key@^3.1.0:
   version "3.1.1"
