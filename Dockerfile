@@ -4,7 +4,7 @@ FROM python:3.12.8-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PORT=80
+ENV PORT=8080
 
 # Set work directory
 WORKDIR /app
@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     python3-dev \
+    git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -23,14 +24,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY ./backend/requirements.txt /app/requirements.txt
 
 # Install dependencies
-RUN pip install --no-cache-dir --upgrade pip \
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
     && pip install --no-cache-dir -r requirements.txt
+
+# Force CPU-only for PyTorch to reduce memory usage
+RUN pip uninstall -y torch torchvision \
+    && pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # Copy the backend directory content into the container
 COPY ./backend /app/
 
 # Make port available to the world outside this container
-EXPOSE 80
+EXPOSE 8080
 
 # Command to run the application
-CMD ["python", "main.py"]
+CMD uvicorn main:app --host=0.0.0.0 --port=${PORT}
