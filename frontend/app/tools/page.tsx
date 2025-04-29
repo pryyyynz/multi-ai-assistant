@@ -59,6 +59,14 @@ export default function ToolsPage() {
               description="Check weather forecasts for cities across Ghana"
             />
           </Link>
+
+          <Link href="/resume-builder">
+            <ToolCard
+              icon={<FileText className="h-16 w-16 text-gray-700" />}
+              title="Resume Builder"
+              description="Create and download professional resumes with customizable templates"
+            />
+          </Link>
         </div>
       </div>
     </div>
