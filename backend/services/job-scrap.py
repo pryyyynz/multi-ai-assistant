@@ -2,8 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import time
-from datetime import datetime
-
+import os
 def scrape_ghanajob(url):
     """Scrape job listings from GhanaJob website."""
     headers = {
@@ -187,5 +186,5 @@ if __name__ == "__main__":
     print(f"\nTotal jobs collected: {len(all_jobs)}")
     
     # Save all collected jobs to CSV
-    filename = f"ghanajob_listings.csv"
+    filename = os.path.join("..", "data", "ghanajob_listings.csv")
     save_to_csv(all_jobs, filename)
