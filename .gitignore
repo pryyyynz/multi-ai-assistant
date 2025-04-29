@@ -52,7 +52,6 @@ coverage.xml
 .pytest_cache/
 cover/
 frontend/node_modules/
-data
 
 # Translations
 *.mo
