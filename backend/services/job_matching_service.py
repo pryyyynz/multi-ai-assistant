@@ -31,7 +31,9 @@ class JobMatchingService:
         self.embeddings = self._initialize_embeddings_model()
         
         # Path to the dataset
-        self.dataset_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'ghanajob_listings.csv')
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+        self.dataset_path = os.path.join(BASE_DIR, 'data', 'ghanajob_listings.csv')
         
         # Vector DB path
         self.db_path = os.path.join(tempfile.gettempdir(), "job_listings_db")
