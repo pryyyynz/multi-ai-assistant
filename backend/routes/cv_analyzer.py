@@ -35,20 +35,20 @@ async def analyze_cv(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing CV: {str(e)}")
 
-@router.get("/jobs", response_model=List[JobMatchResponse])
-async def get_jobs(
-    query: str,
-    top_n: int = Query(5, description="Number of top job matches to return")
-):
-    """
-    Search for jobs using a text query.
-    Returns matched jobs with similarity scores.
-    """
-    try:
-        matching_jobs = await job_service.find_matching_jobs(query, top_n=top_n)
-        return matching_jobs
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error searching jobs: {str(e)}")
+# @router.get("/jobs", response_model=List[JobMatchResponse])
+# async def get_jobs(
+#     query: str,
+#     top_n: int = Query(5, description="Number of top job matches to return")
+# ):
+#     """
+#     Search for jobs using a text query.
+#     Returns matched jobs with similarity scores.
+#     """
+#     try:
+#         matching_jobs = await job_service.find_matching_jobs(query, top_n=top_n)
+#         return matching_jobs
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error searching jobs: {str(e)}")
 
 @router.get("/refresh-embeddings")
 async def refresh_embeddings():
