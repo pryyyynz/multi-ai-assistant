@@ -31,7 +31,8 @@ class JobMatchingService:
         self.embeddings = self._initialize_embeddings_model()
         
         # Path to the dataset
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # goes up from /services to /backend
+        # BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
         self.dataset_path = os.path.join(BASE_DIR, 'data', 'ghanajob_listings.csv')
         
