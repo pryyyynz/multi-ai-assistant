@@ -4,7 +4,7 @@ import numpy as np
 from typing import List, Dict, Any
 from langchain_groq import ChatGroq
 from langchain.embeddings import OpenAIEmbeddings
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores.utils import filter_complex_metadata
 from langchain_community.vectorstores import Chroma
 from langchain.schema.document import Document
@@ -13,7 +13,6 @@ import tempfile
 from typing import Optional
 from pydantic import BaseModel, HttpUrl, Field
 from pathlib import Path
-from vector_store_helper import VectorStoreManager
 
 load_dotenv()
 
@@ -52,14 +51,14 @@ class JobMatchingService:
             # Try to use Groq embeddings if API key is available
             if os.getenv("GROQ_API_KEY"):
                 return HuggingFaceEmbeddings(
-                    model_name="paraphrase-MiniLM-L3-v2"
+                    model_name="all-MiniLM-L6-v2"
                 )
         except Exception as e:
             print(f"Error initializing Groq embeddings: {e}")
         
         # Fallback to HuggingFace embeddings
         return HuggingFaceEmbeddings(
-            model_name="paraphrase-MiniLM-L3-v2"
+            model_name="all-MiniLM-L6-v2"
         )
     
     async def initialize_embeddings(self, force_refresh=False):
@@ -109,16 +108,17 @@ class JobMatchingService:
         
         # Create or load the vector store
         if os.path.exists(self.db_path) and not force_refresh:
-            vector_manager = VectorStoreManager(
-                collection_name="your_collection_name",  # Update this
-                db_dir="./data/chroma_db"  # This will be overridden by ENV if set
+            self.vector_store = Chroma(
+                persist_directory=self.db_path,
+                embedding_function=self.embeddings
             )
-            # Load or create the vector store
-            vector_store = vector_manager.load_or_create(
-                documents=documents,  # Your documents list
-                force_refresh=force_refresh  # Your refresh flag
-)
-        
+        else:
+            # Create new vector store from documents
+            self.vector_store = Chroma.from_documents(
+                documents=[doc for doc in documents],
+                embedding=self.embeddings,
+                persist_directory=self.db_path
+            )
             
             # Persist the vector store
             self.vector_store.persist()
