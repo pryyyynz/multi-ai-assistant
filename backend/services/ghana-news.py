@@ -21,3 +21,5 @@ params = {
 # Make the GET request
 response = requests.get(base_url, params=params)
 
+print(response.json())
+
