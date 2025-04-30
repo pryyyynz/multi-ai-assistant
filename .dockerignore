@@ -42,6 +42,17 @@ frontend/
 node_modules/
 npm-debug.log
 
+# ChromaDB persisted databases
+chroma_db/
+
+# Exclude large model files if any
+*.bin
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.h5
+
 # Others
 .DS_Store
 Thumbs.db
