@@ -4,7 +4,7 @@ import numpy as np
 from typing import List, Dict, Any
 from langchain_groq import ChatGroq
 from langchain.embeddings import OpenAIEmbeddings
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores.utils import filter_complex_metadata
 from langchain_community.vectorstores import Chroma
 from langchain.schema.document import Document
@@ -52,14 +52,14 @@ class JobMatchingService:
             # Try to use Groq embeddings if API key is available
             if os.getenv("GROQ_API_KEY"):
                 return HuggingFaceEmbeddings(
-                    model_name="all-MiniLM-L6-v2"
+                    model_name="paraphrase-MiniLM-L3-v2"
                 )
         except Exception as e:
             print(f"Error initializing Groq embeddings: {e}")
         
         # Fallback to HuggingFace embeddings
         return HuggingFaceEmbeddings(
-            model_name="all-MiniLM-L6-v2"
+            model_name="paraphrase-MiniLM-L3-v2"
         )
     
     async def initialize_embeddings(self, force_refresh=False):
