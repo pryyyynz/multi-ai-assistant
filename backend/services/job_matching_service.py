@@ -13,6 +13,7 @@ import tempfile
 from typing import Optional
 from pydantic import BaseModel, HttpUrl, Field
 from pathlib import Path
+from vector_store_helper import VectorStoreManager
 
 load_dotenv()
 
@@ -108,17 +109,16 @@ class JobMatchingService:
         
         # Create or load the vector store
         if os.path.exists(self.db_path) and not force_refresh:
-            self.vector_store = Chroma(
-                persist_directory=self.db_path,
-                embedding_function=self.embeddings
+            vector_manager = VectorStoreManager(
+                collection_name="your_collection_name",  # Update this
+                db_dir="./data/chroma_db"  # This will be overridden by ENV if set
             )
-        else:
-            # Create new vector store from documents
-            self.vector_store = Chroma.from_documents(
-                documents=[doc for doc in documents],
-                embedding=self.embeddings,
-                persist_directory=self.db_path
-            )
+            # Load or create the vector store
+            vector_store = vector_manager.load_or_create(
+                documents=documents,  # Your documents list
+                force_refresh=force_refresh  # Your refresh flag
+)
+        
             
             # Persist the vector store
             self.vector_store.persist()
