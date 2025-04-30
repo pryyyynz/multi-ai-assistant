@@ -9,8 +9,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  env: {
+    NEWS_API_KEY: process.env.NEWS_API_KEY,
+  },
 }
 
 export default nextConfig
-
-

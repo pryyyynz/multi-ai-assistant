@@ -1,6 +1,6 @@
 import type React from "react"
 import Link from "next/link"
-import { FileText, FileSearch, Cloud, BarChart2 } from "lucide-react"
+import { FileText, FileSearch, Cloud, BarChart2, PenTool } from "lucide-react"
 import NavBar from "@/components/nav-bar"
 
 export default function ToolsPage() {
@@ -65,6 +65,14 @@ export default function ToolsPage() {
               icon={<FileText className="h-16 w-16 text-gray-700" />}
               title="Resume Builder"
               description="Create and download professional resumes with customizable templates"
+            />
+          </Link>
+
+          <Link href="/cover-letter-generator">
+            <ToolCard
+              icon={<PenTool className="h-16 w-16 text-gray-700" />}
+              title="Cover Letter Generator"
+              description="Generate tailored cover letters for job applications"
             />
           </Link>
         </div>

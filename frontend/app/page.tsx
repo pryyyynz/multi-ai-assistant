@@ -1,6 +1,11 @@
-import type React from "react"
+import { Suspense } from "react"
 import Link from "next/link"
-import { Search, FileText, FileSearch, Cloud, BarChart2, ChevronDown } from "lucide-react"
+import { Search, FileText, FileSearch, CloudIcon, BarChart2, PenTool } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { HomeTechNews } from "@/components/home-tech-news"
+import { HomeNews } from "@/components/home-news"
+import { WeatherWidget } from "@/components/weather-widget"
+import { FeatureCard } from "@/components/feature-card"
 
 export default function Home() {
   return (
@@ -56,7 +61,7 @@ export default function Home() {
         </Link>
         <Link href="/weather">
           <FeatureCard
-            icon={<Cloud className="h-12 w-12 text-gray-700" />}
+            icon={<CloudIcon className="h-12 w-12 text-gray-700" />}
             title="Weather Updates"
             description="View weather in Ghanaian cities"
           />
@@ -68,11 +73,11 @@ export default function Home() {
             description="Upload CSV files for data analysis"
           />
         </Link>
-        <Link href="/resume-builder">
+        <Link href="/cover-letter-generator">
           <FeatureCard
-            icon={<FileText className="h-12 w-12 text-gray-700" />}
-            title="Resume Builder"
-            description="Create and download professional resumes"
+            icon={<PenTool className="h-12 w-12 text-gray-700" />}
+            title="Cover Letter Generator"
+            description="Create tailored cover letters"
           />
         </Link>
       </div>
@@ -82,25 +87,39 @@ export default function Home() {
         {/* Trending News */}
         <div>
           <h2 className="text-2xl font-bold mb-4">
-            <Link href="/news" className="hover:underline">
+            <Link href="/news?tab=ghana" className="hover:underline flex items-center">
               Trending Ghanaian News
             </Link>
           </h2>
-          <div className="space-y-4">
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-          </div>
+          <Suspense
+            fallback={
+              <div className="space-y-4">
+                <Skeleton className="h-16 w-full rounded-md" />
+                <Skeleton className="h-16 w-full rounded-md" />
+              </div>
+            }
+          >
+            <HomeNews />
+          </Suspense>
         </div>
 
         {/* Tech News */}
         <div>
-          <h2 className="text-2xl font-bold mb-4">Tech and AI News</h2>
-          <div className="space-y-4">
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-          </div>
+          <h2 className="text-2xl font-bold mb-4">
+            <Link href="/news?tab=tech" className="hover:underline flex items-center">
+              Tech and AI News
+            </Link>
+          </h2>
+          <Suspense
+            fallback={
+              <div className="space-y-4">
+                <Skeleton className="h-16 w-full rounded-md" />
+                <Skeleton className="h-16 w-full rounded-md" />
+              </div>
+            }
+          >
+            <HomeTechNews />
+          </Suspense>
         </div>
 
         {/* Weather */}
@@ -110,41 +129,9 @@ export default function Home() {
               Today's Weather
             </Link>
           </h2>
-          <div className="border rounded-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-lg">Accra</span>
-              <ChevronDown className="h-5 w-5" />
-            </div>
-            <div className="flex items-center">
-              <div className="mr-4">
-                <Cloud className="h-12 w-12" />
-              </div>
-              <div>
-                <div className="text-4xl font-bold">28°C</div>
-                <div className="text-gray-600">Partly cloudy</div>
-              </div>
-            </div>
-          </div>
+          <WeatherWidget />
         </div>
       </div>
-    </div>
-  )
-}
-
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode
-  title: string
-  description: string
-}) {
-  return (
-    <div className="border rounded-lg p-6 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-      <div className="mb-4">{icon}</div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-gray-500">{description}</p>
     </div>
   )
 }
