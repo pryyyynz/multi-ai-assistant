@@ -10,16 +10,11 @@ from routes.cover_letter import cover_letter_router
 from services.api_key_validation import get_groq_api_key
 from services.job_matching_service import JobMatchingService
 from routes import cv_analyzer
-
-
+from routes import chat_router
+from services.rag_service import RAGService
 
 # Load environment variables
 load_dotenv()
-
-# # Get API keys
-# GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-# if not GROQ_API_KEY:
-#     raise ValueError("GROQ_API_KEY environment variable must be set")
 
 # Initialize service
 document_service = DocumentQAService()
@@ -31,7 +26,7 @@ async def lifespan(app: FastAPI):
     # Clean up on shutdown
     # No cleanup needed for now
 
-app = FastAPI(lifespan=lifespan, title="Document Q&A API")
+app = FastAPI(lifespan=lifespan, title="Multi AI API")
 
 # Add CORS middleware to allow your frontend to communicate with the API
 app.add_middleware(
@@ -41,6 +36,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # Initialize services on startup
 @app.on_event("startup")
 async def startup_event():
@@ -52,6 +48,7 @@ async def startup_event():
     # Initialize job matching service and preload embeddings
     job_service = JobMatchingService()
     await job_service.initialize_embeddings()
+
 # Dependency to get the document service
 def get_document_service():
     return document_service
@@ -68,10 +65,18 @@ app.include_router(
     dependencies=[Depends(get_groq_api_key)]
 )
 
-# Include routers
+# Include CV analyzer router
 app.include_router(
     cv_analyzer.router, 
-    tags=["CV Analysis"])
+    tags=["CV Analysis"]
+)
+
+# Include Ghana LLM router - remove duplicate "chat" tag
+app.include_router(
+    chat_router.router,
+    prefix="/ghana",  # Add a prefix to avoid route collisions
+    tags=["Ghana LLM"]
+)
 
 if __name__ == "__main__":
     import uvicorn
