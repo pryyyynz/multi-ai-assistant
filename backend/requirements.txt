@@ -157,3 +157,6 @@ zstandard==0.23.0
 newsapi-python==0.2.7
 faiss-cpu
 duckduckgo-search
+apscheduler
+schedule
+bs4
