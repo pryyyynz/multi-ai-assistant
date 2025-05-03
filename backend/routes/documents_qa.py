@@ -146,7 +146,8 @@ async def upload_documents(
             "results": results,
             "session_info": {
                 "document_count": document_count,
-                "has_vector_store": has_vector_store
+                "has_vector_store": has_vector_store,
+                "session_id": request.state.session_token
             }
         }
     )
