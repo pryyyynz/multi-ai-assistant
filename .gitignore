@@ -15,7 +15,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+lib/.news-utils.ts.swp
 lib64/
 parts/
 sdist/
