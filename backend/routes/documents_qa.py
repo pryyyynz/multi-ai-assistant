@@ -325,3 +325,70 @@ async def reset_session(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error resetting session: {str(e)}"
         )
+@router.post("/ask-qa",
+             summary="Ask questions about documents",
+             description="Ask a question about previously uploaded documents")
+async def ask_question(
+    request: Request,
+    question: str = Form(...),
+    k: Optional[int] = Form(4, description="Number of relevant chunks to retrieve"),
+    service: DocumentQAService = Depends(set_session_token)  # Use the same dependency as other endpoints
+):
+    """
+    Ask a question about the uploaded documents.
+    
+    - **question**: The question to ask
+    - **k**: Number of relevant document chunks to retrieve (default: 4)
+    
+    Returns an answer based on the document content.
+    """
+    try:
+        # Validate inputs
+        if not question.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Question cannot be empty"
+            )
+            
+        if k <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Parameter 'k' must be greater than 0"
+            )
+        
+        # Debug information
+        logger.info(f"Ask question for session token: {request.state.session_token}")
+        logger.info(f"Vector store exists: {service.vector_store is not None}")
+        logger.info(f"Document count: {service.get_document_count()}")
+        
+        # Check if documents have been uploaded
+        if service.vector_store is None:
+            logger.warning("Question asked but no documents have been uploaded")
+            return {
+                "answer": "No documents have been uploaded yet. Please upload documents before asking questions.",
+                "has_documents": False,
+                "session_info": {
+                    "document_count": 0
+                }
+            }
+            
+        # Process question
+        logger.info(f"Processing question: {question[:50]}{'...' if len(question) > 50 else ''}")
+        response = await service.query_documents(question, k)
+        
+        # Add document count and session token
+        response["session_info"] = {
+            "document_count": service.get_document_count(),
+            "session_token": request.state.session_token
+        }
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error processing question: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing question: {str(e)}"
+        ) 
