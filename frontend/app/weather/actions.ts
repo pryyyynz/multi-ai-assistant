@@ -68,7 +68,7 @@ export interface ForecastData {
 export async function getCurrentWeather(city: string): Promise<WeatherData | null> {
   try {
     // Use environment variable for API key
-    const API_KEY = process.env.WEATHER_API || "8f7772bd8aba44b582323425252604"
+    const API_KEY = process.env.WEATHER_API
 
     // Add "Ghana" to the city name to make it more specific
     const location = `${city}, Ghana`
@@ -98,7 +98,7 @@ export async function getCurrentWeather(city: string): Promise<WeatherData | nul
 export async function getForecast(city: string): Promise<ForecastData | null> {
   try {
     // Use environment variable for API key
-    const API_KEY = process.env.WEATHER_API || "8f7772bd8aba44b582323425252604"
+    const API_KEY = process.env.WEATHER_API
 
     // Add "Ghana" to the city name to make it more specific
     const location = `${city}, Ghana`

@@ -9,12 +9,12 @@ export default function ToolsPage() {
       <NavBar />
 
       <div className="mt-8">
-        <h1 className="text-4xl font-bold mb-12 text-center">Ghana AI Tools</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center">Ghana AI Tools</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
           <Link href="/chat">
             <ToolCard
-              icon={<Cloud className="h-16 w-16 text-gray-700" />}
+              icon={<Cloud className="h-12 w-12 text-gray-700" />}
               title="Ghana Chat"
               description="Ask questions about Ghana's history, culture, and more"
             />
@@ -22,7 +22,7 @@ export default function ToolsPage() {
 
           <Link href="/chat-pdf">
             <ToolCard
-              icon={<FileText className="h-16 w-16 text-gray-700" />}
+              icon={<FileText className="h-12 w-12 text-gray-700" />}
               title="PDF Q&A"
               description="Upload PDF and ask questions about the content"
             />
@@ -30,7 +30,7 @@ export default function ToolsPage() {
 
           <Link href="/resume-analyzer">
             <ToolCard
-              icon={<FileSearch className="h-16 w-16 text-gray-700" />}
+              icon={<FileSearch className="h-12 w-12 text-gray-700" />}
               title="Resume Analyzer"
               description="Get feedback on your resume and job suggestions"
             />
@@ -38,7 +38,7 @@ export default function ToolsPage() {
 
           <Link href="/data-explorer">
             <ToolCard
-              icon={<BarChart2 className="h-16 w-16 text-gray-700" />}
+              icon={<BarChart2 className="h-12 w-12 text-gray-700" />}
               title="CSV Explorer"
               description="Upload CSV files for data analysis and visualization"
             />
@@ -46,7 +46,7 @@ export default function ToolsPage() {
 
           <Link href="/news">
             <ToolCard
-              icon={<Cloud className="h-16 w-16 text-gray-700" />}
+              icon={<Cloud className="h-12 w-12 text-gray-700" />}
               title="Ghana News"
               description="Stay updated with the latest news from Ghana"
             />
@@ -54,7 +54,7 @@ export default function ToolsPage() {
 
           <Link href="/weather">
             <ToolCard
-              icon={<Cloud className="h-16 w-16 text-gray-700" />}
+              icon={<Cloud className="h-12 w-12 text-gray-700" />}
               title="Weather Updates"
               description="Check weather forecasts for cities across Ghana"
             />
@@ -62,7 +62,7 @@ export default function ToolsPage() {
 
           <Link href="/resume-builder">
             <ToolCard
-              icon={<FileText className="h-16 w-16 text-gray-700" />}
+              icon={<FileText className="h-12 w-12 text-gray-700" />}
               title="Resume Builder"
               description="Create and download professional resumes with customizable templates"
             />
@@ -70,7 +70,7 @@ export default function ToolsPage() {
 
           <Link href="/cover-letter-generator">
             <ToolCard
-              icon={<PenTool className="h-16 w-16 text-gray-700" />}
+              icon={<PenTool className="h-12 w-12 text-gray-700" />}
               title="Cover Letter Generator"
               description="Generate tailored cover letters for job applications"
             />
@@ -91,10 +91,10 @@ function ToolCard({
   description: string
 }) {
   return (
-    <div className="border rounded-lg p-8 flex flex-col items-center text-center hover:shadow-md transition-shadow h-full">
-      <div className="mb-6">{icon}</div>
-      <h3 className="text-2xl font-semibold mb-3">{title}</h3>
-      <p className="text-gray-500">{description}</p>
+    <div className="border rounded-lg p-4 md:p-8 flex flex-col items-center text-center hover:shadow-md transition-shadow h-full">
+      <div className="mb-4 md:mb-6">{icon}</div>
+      <h3 className="text-xl md:text-2xl font-semibold mb-2 md:mb-3">{title}</h3>
+      <p className="text-sm md:text-base text-gray-500">{description}</p>
     </div>
   )
 }

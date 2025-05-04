@@ -1,61 +1,107 @@
 "use server"
 
-import { fallbackGhanaNews, fallbackTechNews, NewsApiResponse, GhanaNewsApiResponse } from './constants'
+import { revalidatePath } from "next/cache"
 
-// Helper function to format published date
-export async function formatPublishedDate(dateString: string): Promise<string> {
-  const date = new Date(dateString)
-
-  // Check if date is valid
-  if (isNaN(date.getTime())) {
-    return "Unknown date"
+export type NewsArticle = {
+  title: string
+  description: string
+  url: string
+  urlToImage?: string
+  publishedAt: string
+  source: {
+    name: string
   }
-
-  // Format date as "Month Day, Year"
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  })
+  author?: string
 }
 
-// Fetch tech news from News API with improved error handling and caching
-export async function getTechNews(): Promise<NewsApiResponse> {
+export type NewsResponse = {
+  status: string
+  totalResults?: number
+  articles?: NewsArticle[]
+  code?: string
+  message?: string
+}
+
+// Fallback tech news data
+export const fallbackTechNews: NewsResponse = {
+  status: "ok",
+  totalResults: 2,
+  articles: [
+    {
+      title: "AI Breakthrough: New Model Achieves Human-Level Performance",
+      description:
+        "Researchers have developed a new AI model that demonstrates human-level performance across a wide range of tasks, marking a significant milestone in artificial intelligence research.",
+      url: "https://example.com/tech-news-1",
+      urlToImage: "/placeholder.svg?height=200&width=300",
+      publishedAt: "2023-04-15T09:30:00Z",
+      source: { name: "Tech Daily" },
+      author: "AI Researcher",
+    },
+    {
+      title: "Quantum Computing Reaches Major Milestone with 1000-Qubit Processor",
+      description:
+        "A leading quantum computing company has announced the development of a 1000-qubit quantum processor, potentially bringing practical quantum computing applications closer to reality.",
+      url: "https://example.com/tech-news-2",
+      urlToImage: "/placeholder.svg?height=200&width=300",
+      publishedAt: "2023-04-14T14:45:00Z",
+      source: { name: "Future Tech" },
+      author: "Quantum Specialist",
+    },
+  ],
+}
+
+// Format the published date
+export async function formatPublishedDate(dateString: string): Promise<string> {
   try {
-    const today = new Date()
-    const fiveDaysAgo = new Date(today)
-    fiveDaysAgo.setDate(today.getDate() - 5)
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  } catch (error) {
+    console.error("Error formatting date:", error)
+    return dateString
+  }
+}
 
-    const fromDate = fiveDaysAgo.toISOString().split("T")[0]
-    const toDate = today.toISOString().split("T")[0]
-
+// Fetch tech news
+export async function getTechNews(): Promise<NewsResponse> {
+  try {
     const apiKey = process.env.NEWS_API_KEY
-
     if (!apiKey) {
-      console.warn("NEWS_API_KEY is not defined, using fallback data")
+      console.error("NEWS_API_KEY is not defined")
       return fallbackTechNews
     }
 
-    const sources = "wired,techcrunch,the-verge,ars-technica,engadget,mit-technology-review"
-    const domains =
-      "bbc.co.uk,techcrunch.com,venturebeat.com,thenextweb.com,artificialintelligence-news.com,aitrends.com"
+    const response = await fetch(
+      `https://newsapi.org/v2/top-headlines?category=technology&pageSize=10&language=en&apiKey=${apiKey}`,
+      { next: { revalidate: 3600 } }, // Cache for 1 hour
+    )
 
-    const url = `https://newsapi.org/v2/everything?q=AI, Artificial Intelligence&sources=${sources}&domains=${domains}&from=${fromDate}&to=${toDate}&language=en&sortBy=publishedAt&apiKey=${apiKey}`
-
-    // Use a longer cache time to avoid hitting rate limits
-    const response = await fetch(url, {
-      next: { revalidate: 7200 }, // Cache for 2 hours
-      headers: {
-        "User-Agent": "Multi-AI-Assistant/1.0",
-      },
-    })
+    // Handle 426 Upgrade Required error specifically
+    if (response.status === 426) {
+      console.error("News API requires a paid subscription for production use. Using fallback data.")
+      return {
+        status: "error",
+        code: "upgradeRequired",
+        message: "News API requires a paid subscription for production use.",
+        articles: fallbackTechNews.articles,
+      }
+    }
 
     if (!response.ok) {
-      console.warn(`News API request failed with status ${response.status}`)
+      console.error(`News API responded with status: ${response.status}`)
       return fallbackTechNews
     }
 
     const data = await response.json()
+
+    if (data.status !== "ok" || !data.articles || !Array.isArray(data.articles) || data.articles.length === 0) {
+      console.error("Invalid or empty response from News API")
+      return fallbackTechNews
+    }
+
     return data
   } catch (error) {
     console.error("Error fetching tech news:", error)
@@ -63,99 +109,140 @@ export async function getTechNews(): Promise<NewsApiResponse> {
   }
 }
 
-// Fetch Ghana news with improved error handling and caching
-export async function getGhanaNews(): Promise<GhanaNewsApiResponse> {
+// Fetch tech news for the news page
+export async function fetchTechNews() {
   try {
-    // Use a cached version if available to reduce API calls
-    const cacheKey = "ghana-news-cache"
-    const cachedData = await getCachedData(cacheKey)
-
-    if (cachedData) {
-      return cachedData
-    }
-
-    const apiKey = "pub_83090774cc754e5d50929e8969c84f48fdf66"
-
+    const apiKey = process.env.NEWS_API_KEY
     if (!apiKey) {
-      console.warn("Ghana News API key is not defined, using fallback data")
-      return fallbackGhanaNews
+      console.error("NEWS_API_KEY is not defined")
+      return { results: [] }
     }
 
-    const url = `https://newsdata.io/api/1/latest?apikey=${apiKey}&language=en&country=gh&category=business,domestic,education,entertainment,politics`
-
-    // Use a longer cache time and implement retry logic
-    const response = await fetchWithRetry(url, 3)
+    const response = await fetch(
+      `https://newsdata.io/api/1/news?apikey=${apiKey}&category=technology&language=en&size=12`,
+      { next: { revalidate: 3600 } },
+    )
 
     if (!response.ok) {
-      console.warn(`Ghana News API request failed with status ${response.status}`)
-      return fallbackGhanaNews
+      console.error(`NewsData.io API responded with status: ${response.status}`)
+      return {
+        results: [
+          {
+            title: "AI Breakthrough: New Model Achieves Human-Level Performance",
+            description:
+              "Researchers have developed a new AI model that demonstrates human-level performance across a wide range of tasks.",
+            link: "https://example.com/tech-news-1",
+            image_url: "/placeholder.svg?height=200&width=300",
+            pubDate: "2023-04-15T09:30:00Z",
+            source_name: "Tech Daily",
+            category: ["technology"],
+          },
+          {
+            title: "Quantum Computing Reaches Major Milestone with 1000-Qubit Processor",
+            description:
+              "A leading quantum computing company has announced the development of a 1000-qubit quantum processor.",
+            link: "https://example.com/tech-news-2",
+            image_url: "/placeholder.svg?height=200&width=300",
+            pubDate: "2023-04-14T14:45:00Z",
+            source_name: "Future Tech",
+            category: ["technology"],
+          },
+        ],
+      }
     }
 
     const data = await response.json()
+    return data
+  } catch (error) {
+    console.error("Error fetching tech news:", error)
+    return {
+      results: [
+        {
+          title: "AI Breakthrough: New Model Achieves Human-Level Performance",
+          description:
+            "Researchers have developed a new AI model that demonstrates human-level performance across a wide range of tasks.",
+          link: "https://example.com/tech-news-1",
+          image_url: "/placeholder.svg?height=200&width=300",
+          pubDate: "2023-04-15T09:30:00Z",
+          source_name: "Tech Daily",
+          category: ["technology"],
+        },
+        {
+          title: "Quantum Computing Reaches Major Milestone with 1000-Qubit Processor",
+          description:
+            "A leading quantum computing company has announced the development of a 1000-qubit quantum processor.",
+          link: "https://example.com/tech-news-2",
+          image_url: "/placeholder.svg?height=200&width=300",
+          pubDate: "2023-04-14T14:45:00Z",
+          source_name: "Future Tech",
+          category: ["technology"],
+        },
+      ],
+    }
+  }
+}
 
-    // Cache the successful response
-    await cacheData(cacheKey, data, 7200) // Cache for 2 hours
+// Fetch Ghana news from our API route
+export async function fetchGhanaNews() {
+  try {
+    const response = await fetch("/api/ghana-news", { next: { revalidate: 3600 } })
 
+    if (!response.ok) {
+      console.error(`Ghana news API responded with status: ${response.status}`)
+      return {
+        articles: [
+          {
+            title: "Ghana's Economy Shows Strong Growth in Q2 2025",
+            link: "https://example.com/ghana-economy",
+            pubDate: "2025-04-28T14:30:00Z",
+            description:
+              "Ghana's economy has shown remarkable resilience with a 5.8% growth in the second quarter of 2025.",
+            category: ["Business"],
+            imageUrl: "/placeholder.svg?height=200&width=300",
+          },
+          {
+            title: "New Educational Reforms Announced by Ghana's Ministry of Education",
+            link: "https://example.com/ghana-education",
+            pubDate: "2025-04-27T09:15:00Z",
+            description:
+              "The Ministry of Education has announced comprehensive reforms aimed at improving educational outcomes.",
+            category: ["News"],
+            imageUrl: "/placeholder.svg?height=200&width=300",
+          },
+        ],
+      }
+    }
+
+    const data = await response.json()
     return data
   } catch (error) {
     console.error("Error fetching Ghana news:", error)
-    return fallbackGhanaNews
-  }
-}
-
-// Helper function to implement retry logic with exponential backoff
-async function fetchWithRetry(url: string, maxRetries: number): Promise<Response> {
-  let retries = 0
-
-  while (retries < maxRetries) {
-    try {
-      const response = await fetch(url, {
-        next: { revalidate: 7200 }, // Cache for 2 hours
-        headers: {
-          "User-Agent": "Multi-AI-Assistant/1.0",
+    return {
+      articles: [
+        {
+          title: "Ghana's Economy Shows Strong Growth in Q2 2025",
+          link: "https://example.com/ghana-economy",
+          pubDate: "2025-04-28T14:30:00Z",
+          description:
+            "Ghana's economy has shown remarkable resilience with a 5.8% growth in the second quarter of 2025.",
+          category: ["Business"],
+          imageUrl: "/placeholder.svg?height=200&width=300",
         },
-      })
-
-      // If we get a 429, wait and retry
-      if (response.status === 429) {
-        const retryAfter = response.headers.get("Retry-After") || Math.pow(2, retries) * 1000
-        const waitTime = typeof retryAfter === "string" ? Number.parseInt(retryAfter, 10) * 1000 : retryAfter
-
-        console.warn(`Rate limited. Retrying after ${waitTime}ms`)
-        await new Promise((resolve) => setTimeout(resolve, waitTime))
-        retries++
-        continue
-      }
-
-      return response
-    } catch (error) {
-      retries++
-      if (retries >= maxRetries) throw error
-
-      // Wait with exponential backoff
-      const waitTime = Math.pow(2, retries) * 1000
-      await new Promise((resolve) => setTimeout(resolve, waitTime))
+        {
+          title: "New Educational Reforms Announced by Ghana's Ministry of Education",
+          link: "https://example.com/ghana-education",
+          pubDate: "2025-04-27T09:15:00Z",
+          description:
+            "The Ministry of Education has announced comprehensive reforms aimed at improving educational outcomes.",
+          category: ["News"],
+          imageUrl: "/placeholder.svg?height=200&width=300",
+        },
+      ],
     }
   }
-
-  // If we've exhausted retries, make one last attempt
-  return fetch(url, { next: { revalidate: 7200 } })
 }
 
-// Simple in-memory cache implementation - these helper functions also need to be async
-const cache: Record<string, { data: any; expiry: number }> = {}
-
-async function getCachedData(key: string): Promise<any> {
-  const cachedItem = cache[key]
-  if (cachedItem && cachedItem.expiry > Date.now()) {
-    return cachedItem.data
-  }
-  return null
-}
-
-async function cacheData(key: string, data: any, ttlSeconds: number): Promise<void> {
-  cache[key] = {
-    data,
-    expiry: Date.now() + ttlSeconds * 1000,
-  }
+// Revalidate the news page to refresh the data
+export async function revalidateNews() {
+  revalidatePath("/news")
 }

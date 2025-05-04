@@ -1,3 +1,8 @@
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
 import NavBar from "@/components/nav-bar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -9,9 +14,103 @@ import {
   FileQuestion,
   Code,
   Briefcase,
+  Send,
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function AboutPage() {
+  const { toast } = useToast()
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "Feedback",
+    message: "",
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    try {
+      // Simple email validation
+      if (!formData.email.includes("@")) {
+        throw new Error("Please enter a valid email address")
+      }
+
+      // Prepare data for EmailJS
+      const emailData = {
+        service_id: process.env.NEXT_PUBLIC_EMAIL_SERVICE_ID,
+        template_id: process.env.NEXT_PUBLIC_EMAIL_TEMPLATE_ID,
+        user_id: process.env.NEXT_PUBLIC_EMAIL_PUBLIC_KEY,
+        accessToken: process.env.NEXT_PUBLIC_EMAIL_PRIVATE_KEY,
+        template_params: {
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        },
+      }
+
+      // Send email using EmailJS API
+      const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(emailData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.text()
+        throw new Error(`Failed to send email: ${errorData}`)
+      }
+
+      toast({
+        title: "Feedback Sent",
+        description: "Thank you for your feedback! We'll get back to you soon.",
+      })
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        subject: "Feedback",
+        message: "",
+      })
+    } catch (error: any) {
+      console.error("Email sending error:", error)
+
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to send feedback. Please try again.",
+      })
+
+      // Fallback to mailto link if EmailJS fails
+      try {
+        const subject = encodeURIComponent(formData.subject)
+        const body = encodeURIComponent(
+          `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`,
+        )
+        window.location.href = `mailto:dugboryeleprince@gmail.com?subject=${subject}&body=${body}`
+      } catch (mailtoError) {
+        console.error("Mailto fallback error:", mailtoError)
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <NavBar />
@@ -170,21 +269,6 @@ export default function AboutPage() {
           </Card>
         </div>
 
-        <div className="bg-gray-50 p-6 rounded-lg mb-12">
-          <h2 className="text-2xl font-semibold mb-4">Technology Stack</h2>
-          <p className="mb-4">
-            Multi AI Assistant is built using cutting-edge technologies to ensure reliability, speed, and security:
-          </p>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Next.js for server-side rendering and optimal performance</li>
-            <li>React for building interactive user interfaces</li>
-            <li>Tailwind CSS for responsive and customizable styling</li>
-            <li>AI models fine-tuned for Ghana-specific knowledge</li>
-            <li>RESTful APIs for weather, news, and other data sources</li>
-            <li>Secure authentication and data handling practices</li>
-          </ul>
-        </div>
-
         <div className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">Our Vision</h2>
           <p className="mb-4">
@@ -199,6 +283,80 @@ export default function AboutPage() {
           </p>
         </div>
 
+        <div className="mb-16">
+          <h2 className="text-2xl font-semibold mb-6">Feedback & Support</h2>
+          <Card>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Your Name</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="John Doe"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Your Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="john.doe@example.com"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Subject</Label>
+                  <select
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    required
+                  >
+                    <option value="Feedback">Feedback</option>
+                    <option value="Complaint">Complaint</option>
+                    <option value="Suggestion">Suggestion</option>
+                    <option value="Question">Question</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="message">Your Message</Label>
+                  <Textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    placeholder="Please share your thoughts, suggestions, or report any issues you've encountered..."
+                    rows={5}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full md:w-auto" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span> Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" /> Send Feedback
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
         <div>
           <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
           <p className="mb-4">
@@ -207,8 +365,8 @@ export default function AboutPage() {
           </p>
           <p>
             Email:{" "}
-            <a href="mailto:contact@multiai-ghana.com" className="text-primary hover:underline">
-              contact@multiai-ghana.com
+            <a href="mailto:dugboryeleprince@gmail.com" className="text-primary hover:underline">
+              dugboryeleprince@gmail.com
             </a>
           </p>
         </div>

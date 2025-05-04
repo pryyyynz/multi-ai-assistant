@@ -6,76 +6,68 @@ import { HomeTechNews } from "@/components/home-tech-news"
 import { HomeNews } from "@/components/home-news"
 import { WeatherWidget } from "@/components/weather-widget"
 import { FeatureCard } from "@/components/feature-card"
+import NavBar from "@/components/nav-bar"
 
 export default function Home() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Navigation */}
-      <nav className="flex justify-between items-center mb-16">
-        <div className="text-2xl font-bold">Multi AI Assistant</div>
-        <div className="flex gap-8">
-          <Link href="/" className="text-xl font-medium">
-            Home
-          </Link>
-          <Link href="/tools" className="text-xl font-medium">
-            Tools
-          </Link>
-          <Link href="/about" className="text-xl font-medium">
-            About
-          </Link>
-        </div>
-      </nav>
+      <NavBar />
 
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-12">Your smart Ghanaian AI Hub</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-12">Your smart Ghanaian AI Hub</h1>
 
         {/* Search Bar */}
-        <div className="relative max-w-xl mx-auto">
+        <form action="/chat" method="get" className="relative max-w-xl mx-auto">
           <input
             type="text"
+            name="query"
             placeholder="Ask anything about Ghana"
             className="w-full py-3 px-4 rounded-full bg-gray-200 text-center"
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          <button
+            type="submit"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-transparent border-none cursor-pointer"
+          >
             <Search className="h-6 w-6" />
-          </div>
-        </div>
+          </button>
+        </form>
       </div>
 
       {/* Feature Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-16">
-        <Link href="/chat-pdf">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-12 md:mb-16">
+        <Link href="/chat-pdf" className="block">
           <FeatureCard
-            icon={<FileText className="h-12 w-12 text-gray-700" />}
+            icon={<FileText className="h-8 md:h-12 w-8 md:w-12 text-gray-700" />}
             title="PDF Q&A"
             description="Upload PDF and ask questions"
           />
         </Link>
-        <Link href="/resume-analyzer">
+        <Link href="/resume-analyzer" className="block">
           <FeatureCard
-            icon={<FileSearch className="h-12 w-12 text-gray-700" />}
+            icon={<FileSearch className="h-8 md:h-12 w-8 md:w-12 text-gray-700" />}
             title="Resume Analyzer"
             description="Get feedback on your resume"
           />
         </Link>
-        <Link href="/weather">
+        <Link href="/weather" className="block">
           <FeatureCard
-            icon={<CloudIcon className="h-12 w-12 text-gray-700" />}
+            icon={<CloudIcon className="h-8 md:h-12 w-8 md:w-12 text-gray-700" />}
             title="Weather Updates"
             description="View weather in Ghanaian cities"
           />
         </Link>
-        <Link href="/data-explorer">
+        <Link href="/data-explorer" className="block">
           <FeatureCard
-            icon={<BarChart2 className="h-12 w-12 text-gray-700" />}
+            icon={<BarChart2 className="h-8 md:h-12 w-8 md:w-12 text-gray-700" />}
             title="CSV Explorer"
             description="Upload CSV files for data analysis"
           />
         </Link>
-        <Link href="/cover-letter-generator">
+        <Link href="/cover-letter-generator" className="block">
           <FeatureCard
-            icon={<PenTool className="h-12 w-12 text-gray-700" />}
+            icon={<PenTool className="h-8 md:h-12 w-8 md:w-12 text-gray-700" />}
             title="Cover Letter Generator"
             description="Create tailored cover letters"
           />
@@ -83,10 +75,10 @@ export default function Home() {
       </div>
 
       {/* Bottom Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {/* Trending News */}
         <div>
-          <h2 className="text-2xl font-bold mb-4">
+          <h2 className="text-xl md:text-2xl font-bold mb-4">
             <Link href="/news?tab=ghana" className="hover:underline flex items-center">
               Trending Ghanaian News
             </Link>
@@ -99,13 +91,14 @@ export default function Home() {
               </div>
             }
           >
+    
             <HomeNews />
           </Suspense>
         </div>
 
         {/* Tech News */}
         <div>
-          <h2 className="text-2xl font-bold mb-4">
+          <h2 className="text-xl md:text-2xl font-bold mb-4">
             <Link href="/news?tab=tech" className="hover:underline flex items-center">
               Tech and AI News
             </Link>
@@ -123,8 +116,8 @@ export default function Home() {
         </div>
 
         {/* Weather */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4">
+        <div className="md:col-span-2 lg:col-span-1">
+          <h2 className="text-xl md:text-2xl font-bold mb-4">
             <Link href="/weather" className="hover:underline">
               Today's Weather
             </Link>

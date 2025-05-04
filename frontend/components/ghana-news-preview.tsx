@@ -1,66 +1,104 @@
-"use client"
-
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ExternalLink } from "lucide-react"
+import Image from "next/image"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { fetchGhanaNews } from "@/app/news/actions"
 
-// Sample Ghana news data based on the API response
-const sampleGhanaNews = [
-  {
-    title: "I had nothing, but I chose Jesus over fame – Yaw Siki",
-    source: "Ghanamma",
-    date: "April 29, 2025",
-    url: "https://www.ghanamma.com/2025/04/29/i-had-nothing-but-i-chose-jesus-over-fame-yaw-siki/",
-  },
-  {
-    title: "Kennedy Agyapong's supporter allegedly stabbed at NPP's Thank You tour in Bantama",
-    source: "Ghanamma",
-    date: "April 29, 2025",
-    url: "https://www.ghanamma.com/2025/04/29/kennedy-agyapongs-supporter-allegedly-stabbed-at-npps-thank-you-tour-in-bantama-2/",
-  },
-]
+interface GhanaNewsPreviewProps {
+  limit?: number
+}
 
-export function GhanaNewsPreview() {
-  const [loading, setLoading] = useState(true)
+export default async function GhanaNewsPreview({ limit = 6 }: GhanaNewsPreviewProps) {
+  const data = await fetchGhanaNews()
+  const articles = data?.articles || []
 
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1000)
+  // Format date to be more readable
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    } catch (e) {
+      return dateString
+    }
+  }
 
-    return () => clearTimeout(timer)
-  }, [])
+  if (!articles.length) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Ghana News</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(limit)].map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <Skeleton className="h-48 w-full" />
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-10 w-24" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
-      {loading ? (
-        <>
-          <Skeleton className="h-16 w-full rounded-md" />
-          <Skeleton className="h-16 w-full rounded-md" />
-        </>
-      ) : (
-        <>
-          {sampleGhanaNews.map((article, index) => (
-            <Link href={article.url} target="_blank" rel="noopener noreferrer" key={index} className="block">
-              <div className="border rounded-lg p-3 hover:shadow-md transition-shadow bg-white">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-medium text-sm line-clamp-2 flex-1 mr-2">{article.title}</h3>
-                  <ExternalLink className="h-4 w-4 flex-shrink-0 text-gray-400" />
-                </div>
-                <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
-                  <span>{article.source}</span>
-                  <span>{article.date}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-          <Link href="/news?tab=ghana" className="text-sm text-gray-600 hover:underline block text-center">
-            View all Ghana news →
-          </Link>
-        </>
-      )}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Ghana News</h2>
+        <Link href="/news" passHref>
+          <Button variant="outline">View All</Button>
+        </Link>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {articles.slice(0, limit).map((article, index) => (
+          <Card key={index} className="flex flex-col h-full overflow-hidden">
+            <div className="relative h-48 w-full">
+              <Image
+                src={article.imageUrl || "/placeholder.svg?height=200&width=300"}
+                alt={article.title}
+                fill
+                style={{ objectFit: "cover" }}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={index < 3}
+              />
+            </div>
+            <CardHeader className="flex-grow">
+              <CardTitle className="line-clamp-2 text-lg">{article.title}</CardTitle>
+              <CardDescription>{formatDate(article.pubDate)}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="line-clamp-3 text-sm text-gray-600 dark:text-gray-300">{article.description}</p>
+            </CardContent>
+            <CardFooter className="flex flex-wrap gap-2">
+              {article.category &&
+                article.category.slice(0, 3).map((cat, i) => (
+                  <Badge key={i} variant="outline" className="mr-1">
+                    {cat}
+                  </Badge>
+                ))}
+            </CardFooter>
+            <CardFooter>
+              <a href={article.link} target="_blank" rel="noopener noreferrer" className="w-full">
+                <Button variant="outline" className="w-full">
+                  Read More
+                </Button>
+              </a>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }
