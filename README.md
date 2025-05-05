@@ -1,14 +1,10 @@
 # Multi AI Assistant
 
-<p align="center">
-  <img src="/api/placeholder/200/200" alt="Multi AI Assistant Logo" />
-</p>
-
 ## Your Smart Ghanaian AI Hub
 
 Multi AI Assistant is a comprehensive platform that democratizes access to AI-powered tools and information about Ghana. We aim to bridge the technology gap by providing intuitive, accessible tools that leverage artificial intelligence to solve everyday problems for Ghanaians and those interested in Ghana.
 
-**Live Demo:** [Visit the App](https://kzmgu6rhihxnassgfkoq.lite.vusercontent.net)
+**Live Demo:** [Visit the App](https://kzmgu6rhixnxassgfkoq.lite.vusercontent.net)
 
 ## 🚀 Features
 
@@ -33,21 +29,15 @@ Multi AI Assistant is a comprehensive platform that democratizes access to AI-po
 - FastAPI
 - LangChain
 - Groq
-- NewsAPI
-- Unstructured (for document processing)
-- PyMuPDF
-- Scikit-learn
 - Sentence-transformers
-- APScheduler
 - BeautifulSoup4 (BS4)
-- DuckDuckGo Search
 - FAISS (for vector search)
 
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
-- Node.js (v16 or later)
-- Python (v3.8 or later)
+- Node.js (v22 or later)
+- Python (v3.10 or later)
 - npm or yarn
 - pip
 
@@ -106,12 +96,8 @@ multi-ai-assistant/
 │   ├── hooks/
 │   ├── lib/
 │   ├── public/
+│   ├── .env.local
 │   ├── styles/
-│   ├── .dockerignore
-│   ├── .gitignore
-│   ├── Dockerfile
-│   ├── LICENSE
-│   ├── README.md
 │   ├── next.config.mjs
 │   ├── package-lock.json
 │   ├── package.json
@@ -119,30 +105,43 @@ multi-ai-assistant/
 │   ├── tailwind.config.ts
 │   ├── tsconfig.json
 │   └── yarn.lock
+├── Dockerfile
+├── .dockerignore
+├── .gitignore
+├── LICENSE
+├── README.md
+├── .env
+
+
 ```
 
 ## 🔌 Environment Variables
 
-Create a `.env` file in the backend directory with the following variables:
+Create a `.env` file in the root directory with the following variables:
 
 ```
 GROQ_API_KEY=your_groq_api_key
-OPENAI_API_KEY=your_openai_api_key
-DATABASE_URL=your_database_url
-NEWS_API_KEY=your_news_api_key
+WEATHER_API=your_weatherapi.com_api_key
+NEWS_API_KEY=your_newsapi.org_api_key
 ```
 
 Create a `.env.local` file in the frontend directory:
 
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:3000
+WEATHER_API=your_weatherapi.com_api_key
+NEWS_API_KEY=your_newsapi.org_api_key
+EMAIL_SERVICE_ID=your_emailjs_details
+EMAIL_TEMPLATE_ID=your_emailjs_details
+EMAIL_PUBLIC_KEY=your_emailjs_details
+EMAIL_PRIVATE_KEY=your_emailjs_details
 ```
 
 ### Required API Keys
 
 - [Groq API](https://console.groq.com/) - For AI models
 - [NewsAPI](https://newsapi.org/) - For Ghana news updates
-- [OpenAI API](https://platform.openai.com/) - Optional backup AI provider
+- [WEATHER API](https://www.weatherapi.com/) - Optional backup AI provider
 
 ## 📝 Usage Examples
 
@@ -201,7 +200,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Contact
 
-Prince Dugborye - dugboryeleprince@gmail.com
+Prince Kojo Dugboryele - dugboryeleprince@gmail.com
 
 Project Link: [https://github.com/pryyyynz/multi-ai-assistant](https://github.com/pryyyynz/multi-ai-assistant)
 
