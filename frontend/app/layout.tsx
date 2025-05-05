@@ -11,8 +11,12 @@ export const metadata: Metadata = {
   title: "Multi AI Assistant - Your smart Ghanaian AI Hub",
   description: "Access AI tools for Ghana-specific information and services",
   generator: "v0.dev",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 }
+export const viewport = {
+    width: "device-width",
+    initialScale: 1,
+  maximumScale: 1,
+};
 
 export default function RootLayout({
   children,
