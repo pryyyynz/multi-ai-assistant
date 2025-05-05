@@ -20,11 +20,11 @@ export default function ToolsPage() {
             />
           </Link>
 
-          <Link href="/chat-pdf">
+          <Link href="/data-explorer">
             <ToolCard
-              icon={<FileText className="h-12 w-12 text-gray-700" />}
-              title="PDF Q&A"
-              description="Upload PDF and ask questions about the content"
+              icon={<BarChart2 className="h-12 w-12 text-gray-700" />}
+              title="CSV Explorer"
+              description="Upload CSV files for data analysis and visualization"
             />
           </Link>
 
@@ -36,11 +36,11 @@ export default function ToolsPage() {
             />
           </Link>
 
-          <Link href="/data-explorer">
+          <Link href="/chat-pdf">
             <ToolCard
-              icon={<BarChart2 className="h-12 w-12 text-gray-700" />}
-              title="CSV Explorer"
-              description="Upload CSV files for data analysis and visualization"
+              icon={<FileText className="h-12 w-12 text-gray-700" />}
+              title="PDF Q&A"
+              description="Upload PDF and ask questions about the content"
             />
           </Link>
 

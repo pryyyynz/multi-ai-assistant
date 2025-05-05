@@ -5,7 +5,6 @@ import "./globals.css"
 import Footer from "@/components/footer"
 import { Toaster } from "@/components/ui/toaster"
 
-// Load font only once to ensure consistency
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -21,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body className={inter.className}>
         <div className="flex flex-col min-h-screen">
           <main className="flex-grow">{children}</main>

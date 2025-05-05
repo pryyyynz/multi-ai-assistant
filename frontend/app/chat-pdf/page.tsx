@@ -6,11 +6,9 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import NavBar from "@/components/nav-bar"
-import { FileText, Upload, Loader2, Copy, RefreshCw, AlertCircle, Bug } from "lucide-react"
+import { FileText, Upload, Loader2, Copy, RefreshCw, AlertCircle } from "lucide-react"
 import { pdfQaApi } from "@/lib/api"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 
 type Message = {
   type: "question" | "response" | "system"
@@ -29,7 +27,6 @@ export default function ChatPdfPage() {
   const [error, setError] = useState<string | null>(null)
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [debugMode, setDebugMode] = useState(false)
   const [lastResponse, setLastResponse] = useState<any>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -81,204 +78,203 @@ export default function ChatPdfPage() {
   }, [messages])
 
   // Updated handleFileChange function for ChatPdfPage component
-const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-  const files = event.target.files
-  if (files && files.length > 0) {
-    const file = files[0]
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files && files.length > 0) {
+      const file = files[0]
 
-    // Validate file type
-    if (file.type !== "application/pdf") {
-      setError("Please upload a PDF file")
+      // Validate file type
+      if (file.type !== "application/pdf") {
+        setError("Please upload a PDF file")
+        return
+      }
+
+      // Validate file size (max 10MB)
+      const maxSizeInBytes = 10 * 1024 * 1024 // 10MB
+      if (file.size > maxSizeInBytes) {
+        setError(`File size exceeds maximum limit of 10MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`)
+        return
+      }
+
+      setIsUploading(true)
+      setError(null)
+      setLastResponse(null)
+      setUploadProgress(0)
+
+      try {
+        console.log(`Starting PDF upload: ${file.name}, size: ${file.size} bytes, type: ${file.type}`)
+        setUploadedFileName(file.name)
+
+        // Simulate upload progress
+        const progressInterval = setInterval(() => {
+          setUploadProgress((prev) => {
+            if (prev >= 90) {
+              clearInterval(progressInterval)
+              return prev
+            }
+            return prev + 10
+          })
+        }, 500)
+
+        // Upload the PDF
+        const response = await pdfQaApi.uploadPdf(file)
+        clearInterval(progressInterval)
+        setUploadProgress(100)
+
+        console.log("Upload response:", response)
+        setLastResponse(response)
+
+        if (response.error) {
+          throw new Error(response.message || "Failed to upload PDF")
+        }
+
+        // Extract session ID using our improved logic
+        const foundSessionId = response.extractedSessionId
+
+        // If we found a session ID, store it
+        if (foundSessionId) {
+          setSessionId(foundSessionId)
+          console.log("Session ID stored:", foundSessionId)
+
+          // Immediately verify session by sending a test question
+          try {
+            const verificationResponse = await pdfQaApi.askQuestion(
+              "Verify this document is loaded correctly",
+              foundSessionId,
+            )
+
+            // If verification fails, show a warning but continue
+            if (
+              verificationResponse.error ||
+              (verificationResponse.error_message && verificationResponse.error_message.includes("no documents"))
+            ) {
+              console.warn("Session verification warning:", verificationResponse)
+              setError(
+                "The document was uploaded, but the session verification had issues. Questions may not work correctly.",
+              )
+            }
+          } catch (verifyErr) {
+            console.warn("Session verification error:", verifyErr)
+          }
+        } else {
+          console.error("Could not find session_id in response:", JSON.stringify(response, null, 2))
+          throw new Error("No session ID found in server response")
+        }
+
+        setPdfUploaded(true)
+        setMessages([
+          {
+            type: "system",
+            text: `PDF "${file.name}" uploaded successfully. You can now ask questions about its content.`,
+          },
+        ])
+      } catch (err: any) {
+        console.error("Upload error:", err)
+        setError(err.message || "An error occurred while uploading the PDF")
+        setMessages([{ type: "system", text: "There was an error uploading your PDF. Please try again." }])
+      } finally {
+        setIsUploading(false)
+        setUploadProgress(0)
+      }
+    }
+  }
+
+  // Updated handleSend function for ChatPdfPage component
+  const handleSend = async () => {
+    if (!input.trim()) return
+    if (!sessionId) {
+      setError("Session ID is missing. Please upload a PDF first.")
       return
     }
 
-    // Validate file size (max 10MB)
-    const maxSizeInBytes = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSizeInBytes) {
-      setError(`File size exceeds maximum limit of 10MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`)
-      return
-    }
+    // Add user question to messages
+    setMessages((prev) => [...prev, { type: "question", text: input }])
 
-    setIsUploading(true)
+    // Store the question and clear input field
+    const questionText = input.trim()
+    setInput("")
+    setIsProcessing(true)
     setError(null)
     setLastResponse(null)
-    setUploadProgress(0)
 
     try {
-      console.log(`Starting PDF upload: ${file.name}, size: ${file.size} bytes, type: ${file.type}`)
-      setUploadedFileName(file.name)
+      console.log("Sending question to API:", questionText)
+      console.log("Using session ID:", sessionId)
 
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval)
-            return prev
-          }
-          return prev + 10
-        })
-      }, 500)
+      // Make the API call with the question and session ID
+      const response = await pdfQaApi.askQuestion(questionText, sessionId)
 
-      // Upload the PDF
-      const response = await pdfQaApi.uploadPdf(file)
-      clearInterval(progressInterval)
-      setUploadProgress(100)
-
-      console.log("Upload response:", response)
+      console.log("API response:", response)
       setLastResponse(response)
 
       if (response.error) {
-        throw new Error(response.message || "Failed to upload PDF")
+        throw new Error(response.message || "Failed to get an answer")
       }
 
-      // Check for warnings and display them in debug mode
-      if (response.warning && debugMode) {
-        console.warn("API Warning:", response.warning)
+      // More comprehensive check for "no documents" error conditions
+      if (
+        response.has_documents === false ||
+        response.document_count === 0 ||
+        (response.error_message && response.error_message.includes("no documents")) ||
+        (response.message && response.message.includes("no documents")) ||
+        (typeof response.answer === "string" && response.answer.toLowerCase().includes("no documents"))
+      ) {
+        // Try to recover the session with a re-upload
+        setError(
+          "The server reports no documents are associated with this session. Please click 'Retry Upload' to reconnect.",
+        )
+
+        // Add error message to chat
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "response",
+            text: "I'm having trouble accessing the document. Please try the 'Retry Upload' button to reconnect.",
+          },
+        ])
+
+        return
       }
 
-      // Extract session ID using our improved logic
-      let foundSessionId = response.extractedSessionId
-
-      // If we found a session ID, store it
-      if (foundSessionId) {
-        setSessionId(foundSessionId)
-        console.log("Session ID stored:", foundSessionId)
-        
-        // Immediately verify session by sending a test question
-        try {
-          const verificationResponse = await pdfQaApi.askQuestion("Verify this document is loaded correctly", foundSessionId)
-          
-          // If verification fails, show a warning but continue
-          if (verificationResponse.error || 
-             (verificationResponse.error_message && verificationResponse.error_message.includes("no documents"))) {
-            console.warn("Session verification warning:", verificationResponse)
-            setError("The document was uploaded, but the session verification had issues. Questions may not work correctly.")
-          }
-        } catch (verifyErr) {
-          console.warn("Session verification error:", verifyErr)
+      // Update session ID if a new session token is provided
+      if (response.session_info && response.session_info.session_token) {
+        const newSessionToken = response.session_info.session_token
+        if (newSessionToken !== sessionId) {
+          console.log(`Updating session ID from ${sessionId} to ${newSessionToken}`)
+          setSessionId(newSessionToken)
         }
-      } else {
-        console.error("Could not find session_id in response:", JSON.stringify(response, null, 2))
-        throw new Error("No session ID found in server response")
       }
 
-      setPdfUploaded(true)
-      setMessages([
+      // Extract the answer with better fallback options
+      const answer = response.answer || response.response || response.result || response.message || "No answer provided"
+
+      // Extract sources with better fallback options
+      const sources =
+        response.sources ||
+        (response.context && response.context.sources) ||
+        (response.metadata && response.metadata.sources) ||
+        []
+
+      // Add the response to messages
+      setMessages((prev) => [
+        ...prev,
         {
-          type: "system",
-          text: `PDF "${file.name}" uploaded successfully. You can now ask questions about its content.`,
+          type: "response",
+          text: answer,
+          sources: sources,
         },
       ])
     } catch (err: any) {
-      console.error("Upload error:", err)
-      setError(err.message || "An error occurred while uploading the PDF")
-      setMessages([{ type: "system", text: "There was an error uploading your PDF. Please try again." }])
-    } finally {
-      setIsUploading(false)
-      setUploadProgress(0)
-    }
-  }
-}
-
-// Updated handleSend function for ChatPdfPage component
-const handleSend = async () => {
-  if (!input.trim()) return
-  if (!sessionId) {
-    setError("Session ID is missing. Please upload a PDF first.")
-    return
-  }
-
-  // Add user question to messages
-  setMessages((prev) => [...prev, { type: "question", text: input }])
-
-  // Store the question and clear input field
-  const questionText = input.trim()
-  setInput("")
-  setIsProcessing(true)
-  setError(null)
-  setLastResponse(null)
-
-  try {
-    console.log("Sending question to API:", questionText)
-    console.log("Using session ID:", sessionId)
-
-    // Make the API call with the question and session ID
-    const response = await pdfQaApi.askQuestion(questionText, sessionId)
-
-    console.log("API response:", response)
-    setLastResponse(response)
-
-    if (response.error) {
-      throw new Error(response.message || "Failed to get an answer")
-    }
-
-    // More comprehensive check for "no documents" error conditions
-    if (
-      response.has_documents === false ||
-      response.document_count === 0 ||
-      (response.error_message && response.error_message.includes("no documents")) ||
-      (response.message && response.message.includes("no documents")) ||
-      (typeof response.answer === 'string' && response.answer.toLowerCase().includes("no documents"))
-    ) {
-      // Try to recover the session with a re-upload
-      setError(
-        "The server reports no documents are associated with this session. Please click 'Retry Upload' to reconnect."
-      )
-      
-      // Add error message to chat
+      console.error("Question error:", err)
+      setError(err.message || "An error occurred while processing your question")
       setMessages((prev) => [
         ...prev,
-        { 
-          type: "response", 
-          text: "I'm having trouble accessing the document. Please try the 'Retry Upload' button to reconnect." 
-        },
+        { type: "response", text: "Sorry, I couldn't process your question. Please try again." },
       ])
-      
-      return
+    } finally {
+      setIsProcessing(false)
     }
-
-    // Update session ID if a new session token is provided
-    if (response.session_info && response.session_info.session_token) {
-      const newSessionToken = response.session_info.session_token
-      if (newSessionToken !== sessionId) {
-        console.log(`Updating session ID from ${sessionId} to ${newSessionToken}`)
-        setSessionId(newSessionToken)
-      }
-    }
-
-    // Extract the answer with better fallback options
-    const answer = response.answer || 
-                   response.response || 
-                   response.result || 
-                   response.message || 
-                   "No answer provided"
-
-    // Extract sources with better fallback options
-    const sources = response.sources || 
-                    (response.context && response.context.sources) || 
-                    (response.metadata && response.metadata.sources) ||
-                    []
-
-    // Add the response to messages
-    setMessages((prev) => [
-      ...prev,
-      {
-        type: "response",
-        text: answer,
-        sources: sources,
-      },
-    ])
-  } catch (err: any) {
-    console.error("Question error:", err)
-    setError(err.message || "An error occurred while processing your question")
-    setMessages((prev) => [
-      ...prev,
-      { type: "response", text: "Sorry, I couldn't process your question. Please try again." },
-    ])
-  } finally {
-    setIsProcessing(false)
   }
-}
 
   const handleUploadClick = () => {
     fileInputRef.current?.click()
@@ -308,25 +304,6 @@ const handleSend = async () => {
       })
   }
 
-  const toggleDebugMode = () => {
-    setDebugMode(!debugMode)
-  }
-
-  const copyDebugInfo = () => {
-    if (lastResponse) {
-      const debugText = JSON.stringify(lastResponse, null, 2)
-      navigator.clipboard
-        .writeText(debugText)
-        .then(() => {
-          console.log("Debug info copied to clipboard")
-        })
-        .catch((err) => {
-          console.error("Failed to copy debug info: ", err)
-        })
-    }
-  }
-
-  // New function to retry uploading the PDF
   const handleRetryUpload = () => {
     if (fileInputRef.current && fileInputRef.current.files && fileInputRef.current.files.length > 0) {
       handleFileChange({ target: fileInputRef.current } as React.ChangeEvent<HTMLInputElement>)
@@ -347,13 +324,6 @@ const handleSend = async () => {
               <h2 className="text-3xl font-bold">Chat with PDF</h2>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center space-x-2">
-                <Switch id="debug-mode" checked={debugMode} onCheckedChange={toggleDebugMode} />
-                <Label htmlFor="debug-mode" className="flex items-center">
-                  <Bug className="h-4 w-4 mr-1" />
-                  Debug
-                </Label>
-              </div>
               {pdfUploaded && (
                 <Button variant="outline" onClick={handleReset} className="flex items-center gap-2">
                   <RefreshCw className="h-4 w-4" />
@@ -375,20 +345,6 @@ const handleSend = async () => {
                 )}
               </AlertDescription>
             </Alert>
-          )}
-
-          {debugMode && lastResponse && (
-            <div className="mb-6 p-4 bg-gray-100 rounded-lg border border-gray-300">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-semibold">Debug Information</h3>
-                <Button variant="outline" size="sm" onClick={copyDebugInfo}>
-                  <Copy className="h-3 w-3 mr-1" /> Copy
-                </Button>
-              </div>
-              <pre className="text-xs overflow-auto max-h-40 p-2 bg-gray-800 text-gray-200 rounded">
-                {JSON.stringify(lastResponse, null, 2)}
-              </pre>
-            </div>
           )}
 
           {!pdfUploaded ? (

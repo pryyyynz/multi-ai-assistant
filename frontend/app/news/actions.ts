@@ -246,3 +246,46 @@ export async function fetchGhanaNews() {
 export async function revalidateNews() {
   revalidatePath("/news")
 }
+
+// Ghana news data for homepage
+export async function getGhanaNewsForHomepage() {
+  // Current date for freshness
+  const currentDate = new Date()
+  const formattedDate = currentDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
+
+  // Return curated Ghana news that's always available
+  return [
+    {
+      title: "Ghana's Digital Economy Expands with New Tech Investments",
+      url: "https://example.com/ghana-tech-investments",
+      source: { name: "Ghana Business News" },
+      publishedAt: currentDate.toISOString(),
+      formattedDate: formattedDate,
+      description:
+        "Ghana's digital economy continues to grow with significant investments in technology infrastructure and startups.",
+      imageUrl: "/placeholder.svg?height=200&width=300",
+      category: "Business",
+      author: "Economic Reporter",
+    },
+    {
+      title: "Ghana Launches New Educational Initiative to Boost Digital Skills",
+      url: "https://example.com/ghana-education-initiative",
+      source: { name: "Ghana Education News" },
+      publishedAt: new Date(currentDate.getTime() - 86400000).toISOString(), // Yesterday
+      formattedDate: new Date(currentDate.getTime() - 86400000).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      description:
+        "The Ministry of Education has launched a new initiative aimed at improving digital skills among students across the country.",
+      imageUrl: "/placeholder.svg?height=200&width=300",
+      category: "Education",
+      author: "Education Correspondent",
+    },
+  ]
+}

@@ -9,7 +9,6 @@ import Image from "next/image"
 import { useSearchParams } from "next/navigation"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { RefreshCw } from "lucide-react"
 
 interface GhanaNewsArticle {
   title: string
@@ -18,6 +17,7 @@ interface GhanaNewsArticle {
   description: string
   category?: string[]
   imageUrl?: string
+  source_name?: string
 }
 
 interface TechNewsArticle {
@@ -44,7 +44,6 @@ export default function NewsPage() {
   const [ghanaNews, setGhanaNews] = useState<GhanaNewsArticle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
 
   // Format date to be more readable
   const formatDate = (dateString: string) => {
@@ -190,6 +189,7 @@ export default function NewsPage() {
                   "Ghana's economy has shown remarkable resilience with a 5.8% growth in the second quarter of 2025.",
                 category: ["Business"],
                 imageUrl: "/placeholder.svg?height=200&width=300",
+                source_name: "Ghana News",
               },
               {
                 title: "New Educational Reforms Announced by Ghana's Ministry of Education",
@@ -199,6 +199,7 @@ export default function NewsPage() {
                   "The Ministry of Education has announced comprehensive reforms aimed at improving educational outcomes.",
                 category: ["News"],
                 imageUrl: "/placeholder.svg?height=200&width=300",
+                source_name: "Ghana News",
               },
             ])
           } else {
@@ -262,12 +263,7 @@ export default function NewsPage() {
     return () => {
       isMounted = false
     }
-  }, [activeTab, retryCount])
-
-  // Function to handle retry
-  const handleRetry = () => {
-    setRetryCount((prev) => prev + 1)
-  }
+  }, [activeTab])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -276,18 +272,11 @@ export default function NewsPage() {
       <div className="max-w-6xl mx-auto mt-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl md:text-4xl font-bold">News</h1>
-          <Button variant="outline" size="sm" onClick={handleRetry}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 flex items-center justify-between">
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800">
             <p>{error}</p>
-            <Button variant="outline" size="sm" onClick={handleRetry}>
-              Retry
-            </Button>
           </div>
         )}
 
@@ -335,7 +324,9 @@ export default function NewsPage() {
                     </div>
                     <div className="p-4 flex-grow flex flex-col">
                       <h2 className="text-xl font-bold mb-2 line-clamp-2">{article.title}</h2>
-                      <div className="text-gray-600 mb-2 text-sm">{formatDate(article.pubDate)}</div>
+                      <div className="text-gray-600 mb-2 text-sm">
+                        {article.source_name || "Ghana News"} · {formatDate(article.pubDate)}
+                      </div>
                       <p className="text-gray-700 mb-4 text-sm flex-grow line-clamp-3">{article.description}</p>
 
                       {article.category && article.category.length > 0 && (
@@ -357,9 +348,6 @@ export default function NewsPage() {
               ) : (
                 <div className="col-span-full text-center py-8">
                   <p className="text-gray-500">No Ghana news available</p>
-                  <Button onClick={handleRetry} className="mt-4">
-                    Try Again
-                  </Button>
                 </div>
               )}
             </div>
@@ -415,9 +403,6 @@ export default function NewsPage() {
               ) : (
                 <div className="col-span-full text-center py-8">
                   <p className="text-gray-500">No tech news available</p>
-                  <Button onClick={handleRetry} className="mt-4">
-                    Try Again
-                  </Button>
                 </div>
               )}
             </div>

@@ -37,11 +37,11 @@ export default function Home() {
 
       {/* Feature Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-12 md:mb-16">
-        <Link href="/chat-pdf" className="block">
+        <Link href="/data-explorer" className="block">
           <FeatureCard
-            icon={<FileText className="h-8 md:h-12 w-8 md:w-12 text-gray-700" />}
-            title="PDF Q&A"
-            description="Upload PDF and ask questions"
+            icon={<BarChart2 className="h-8 md:h-12 w-8 md:w-12 text-gray-700" />}
+            title="CSV Explorer"
+            description="Upload CSV files for data analysis"
           />
         </Link>
         <Link href="/resume-analyzer" className="block">
@@ -58,11 +58,11 @@ export default function Home() {
             description="View weather in Ghanaian cities"
           />
         </Link>
-        <Link href="/data-explorer" className="block">
+        <Link href="/chat-pdf" className="block">
           <FeatureCard
-            icon={<BarChart2 className="h-8 md:h-12 w-8 md:w-12 text-gray-700" />}
-            title="CSV Explorer"
-            description="Upload CSV files for data analysis"
+            icon={<FileText className="h-8 md:h-12 w-8 md:w-12 text-gray-700" />}
+            title="PDF Q&A"
+            description="Upload PDF and ask questions"
           />
         </Link>
         <Link href="/cover-letter-generator" className="block">
@@ -91,7 +91,6 @@ export default function Home() {
               </div>
             }
           >
-    
             <HomeNews />
           </Suspense>
         </div>

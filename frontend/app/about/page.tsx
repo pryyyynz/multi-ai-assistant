@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
+import { sendFeedbackEmail } from "./actions"
 
 export default function AboutPage() {
   const { toast } = useToast()
@@ -42,51 +43,24 @@ export default function AboutPage() {
     setIsSubmitting(true)
 
     try {
-      // Simple email validation
-      if (!formData.email.includes("@")) {
-        throw new Error("Please enter a valid email address")
+      const result = await sendFeedbackEmail(formData)
+
+      if (result.success) {
+        toast({
+          title: "Feedback Sent",
+          description: result.message,
+        })
+
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          subject: "Feedback",
+          message: "",
+        })
+      } else {
+        throw new Error(result.message)
       }
-
-      // Prepare data for EmailJS
-      const emailData = {
-        service_id: process.env.NEXT_PUBLIC_EMAIL_SERVICE_ID,
-        template_id: process.env.NEXT_PUBLIC_EMAIL_TEMPLATE_ID,
-        user_id: process.env.NEXT_PUBLIC_EMAIL_PUBLIC_KEY,
-        accessToken: process.env.NEXT_PUBLIC_EMAIL_PRIVATE_KEY,
-        template_params: {
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject,
-          message: formData.message,
-        },
-      }
-
-      // Send email using EmailJS API
-      const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(emailData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.text()
-        throw new Error(`Failed to send email: ${errorData}`)
-      }
-
-      toast({
-        title: "Feedback Sent",
-        description: "Thank you for your feedback! We'll get back to you soon.",
-      })
-
-      // Reset form
-      setFormData({
-        name: "",
-        email: "",
-        subject: "Feedback",
-        message: "",
-      })
     } catch (error: any) {
       console.error("Email sending error:", error)
 
