@@ -1,0 +1,28 @@
+{
+  "name": "frontend-app",
+  "platform": {
+    "apiVersion": "2018-02-01",
+    "kind": "app",
+    "properties": {
+      "containers": [
+        {
+          "name": "frontend",
+          "properties": {
+            "image": "${CONTAINER_IMAGE_NAME}",
+            "resources": {
+              "requests": {
+                "cpu": 1,
+                "memoryInGb": 1.5
+              }
+            },
+            "ports": [
+              {
+                "port": 3000
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
