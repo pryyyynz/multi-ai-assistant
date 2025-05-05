@@ -25,6 +25,8 @@ jobs:
 
       - name: npm install, build, and test
         working-directory: frontend
+        env:
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
         run: |
           npm install
           npm run build --if-present
