@@ -323,3 +323,4 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
     return fallbackGhanaNews
   }
 }
+)                                        
