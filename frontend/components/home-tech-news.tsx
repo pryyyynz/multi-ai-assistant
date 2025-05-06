@@ -2,8 +2,31 @@ import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { getHomePageTechNews } from "@/lib/news-utils"
 import Image from "next/image"
+import { useState, useEffect } from "react"
 
-// Make this a server component (no "use client" directive)
+// Create a Client Component for the Image with error handling
+"use client"
+function NewsImage({ src, alt, className }) {
+  const [imgSrc, setImgSrc] = useState(src)
+  
+  // Reset the image source if src prop changes
+  useEffect(() => {
+    setImgSrc(src)
+  }, [src])
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      fill
+      sizes="64px"
+      className={className}
+      onError={() => setImgSrc("/placeholder.svg?height=64&width=64")}
+    />
+  )
+}
+
+// Back to Server Component code
 export async function HomeTechNews() {
   const articles = await getHomePageTechNews()
 
@@ -29,16 +52,10 @@ export async function HomeTechNews() {
             <div className="flex items-start gap-3">
               {article.imageUrl && (
                 <div className="flex-shrink-0 w-16 h-16 relative overflow-hidden rounded-md">
-                  <Image
+                  <NewsImage
                     src={article.imageUrl || "/placeholder.svg?height=64&width=64"}
                     alt={article.title}
-                    fill
-                    sizes="64px"
                     className="object-cover"
-                    onError={(e) => {
-                      // Fallback to placeholder if image fails to load
-                      e.currentTarget.src = "/placeholder.svg?height=64&width=64"
-                    }}
                   />
                 </div>
               )}
