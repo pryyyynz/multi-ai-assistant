@@ -173,34 +173,21 @@ export const getHomePageTechNews = cache(async (): Promise<Article[]> => {
 
 // Create a function to fetch Ghana news for the homepage
 export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
-  const CACHE_KEY = "homepage-ghana-news"
-  
+  const CACHE_KEY = "homepage-ghana-news";
+
   // Check memory cache first (fastest)
-  const cachedData = memoryCache.get<Article[]>(CACHE_KEY)
+  const cachedData = memoryCache.get<Article[]>(CACHE_KEY);
   if (cachedData) {
-    return cachedData
+    return cachedData;
   }
 
   try {
-    // In a browser or Next.js environment, we can use a relative URL
-    // But we need to ensure we're using the correct URL format
-    
-    // Solution 1: Use absolute URL if in browser environment
-    let apiUrl: string;
-    
-    // Check if we're in a browser or server environment
-    if (typeof window !== 'undefined') {
-      // We're in the browser, construct an absolute URL
-      const origin = window.location.origin; // Gets the base URL (e.g., https://example.com)
-      apiUrl = `${origin}/api/ghana-news`;
-    } else {
-      // We're on the server
-      // For Next.js API routes, relative paths should work on the server
-      apiUrl = '/api/ghana-news';
-    }
-    
+    // Construct the absolute URL for the API endpoint
+    const baseUrl = process.env.BASE_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+    const apiUrl = `${baseUrl}/api/ghana-news`;
+
     console.log(`Fetching Ghana news from: ${apiUrl}`);
-    
+
     const response = await fetch(apiUrl, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
@@ -225,10 +212,10 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
       imageUrl: article.imageUrl,
       description: article.description,
     }));
-    
+
     // Store in memory cache
     memoryCache.set(CACHE_KEY, articles);
-    
+
     return articles;
   } catch (error) {
     console.error("Error fetching Ghana news for homepage:", error);
