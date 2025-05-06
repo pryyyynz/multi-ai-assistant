@@ -181,21 +181,38 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
     return cachedData
   }
 
-  
   try {
-    // Fetch from the same API endpoint used by the Ghana news tab
-    const response = await fetch("/api/ghana-news", {
-      next: { revalidate: 3600 }, // Cache for 1 hour instead of no-store
-    })
+    // In a browser or Next.js environment, we can use a relative URL
+    // But we need to ensure we're using the correct URL format
+    
+    // Solution 1: Use absolute URL if in browser environment
+    let apiUrl: string;
+    
+    // Check if we're in a browser or server environment
+    if (typeof window !== 'undefined') {
+      // We're in the browser, construct an absolute URL
+      const origin = window.location.origin; // Gets the base URL (e.g., https://example.com)
+      apiUrl = `${origin}/api/ghana-news`;
+    } else {
+      // We're on the server
+      // For Next.js API routes, relative paths should work on the server
+      apiUrl = '/api/ghana-news';
+    }
+    
+    console.log(`Fetching Ghana news from: ${apiUrl}`);
+    
+    const response = await fetch(apiUrl, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch Ghana news: ${response.status}`)
+      throw new Error(`Failed to fetch Ghana news: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (!data.articles || !Array.isArray(data.articles) || data.articles.length === 0) {
-      throw new Error("No articles found in Ghana news response")
+      throw new Error("No articles found in Ghana news response");
     }
 
     // Map the API response to our homepage article format (take only first 2)
@@ -207,14 +224,14 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
       formattedDate: formatDate(article.pubDate),
       imageUrl: article.imageUrl,
       description: article.description,
-    }))
+    }));
     
     // Store in memory cache
-    memoryCache.set(CACHE_KEY, articles)
+    memoryCache.set(CACHE_KEY, articles);
     
-    return articles
+    return articles;
   } catch (error) {
-    console.error("Error fetching Ghana news for homepage:", error)
-    return fallbackGhanaNews
+    console.error("Error fetching Ghana news for homepage:", error);
+    return fallbackGhanaNews;
   }
-})
+});
