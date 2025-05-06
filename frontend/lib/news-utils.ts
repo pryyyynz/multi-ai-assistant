@@ -184,8 +184,7 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
   
   try {
     // Fetch from the same API endpoint used by the Ghana news tab
-    const baseUrl = process.env.API_BASE_URL || 'https://www.pulse.com.gh/rss';
-    const response = await fetch("/api/ghana-news", baseUrl, {
+    const response = await fetch("/api/ghana-news", {
       next: { revalidate: 3600 }, // Cache for 1 hour instead of no-store
     })
 
