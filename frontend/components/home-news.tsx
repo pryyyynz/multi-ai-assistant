@@ -1,10 +1,38 @@
+// home-news.tsx
 import Link from "next/link"
-import { ExternalLink } from "lucide-react"
 import { getHomePageGhanaNews } from "@/lib/news-utils"
-import { NewsArticleClient } from "./news-article-client"
+import { NewsArticleClient } from "@/components/news-article-client"
+
+// Define the Article interface
+interface Article {
+  url: string
+  imageUrl?: string
+  title: string
+  source: {
+    name: string
+  }
+  formattedDate: string
+}
 
 export async function HomeNews() {
-  const articles = await getHomePageGhanaNews()
+  // Option 1: Type assertion - use this if you're confident the returned data matches your interface
+  const articles = (await getHomePageGhanaNews()) as Article[]
+  
+  // Option 2: Alternative approach with safer type checking
+  /*
+  const rawArticles = await getHomePageGhanaNews()
+  
+  // Transform or validate the data to ensure it matches your Article interface
+  const articles = rawArticles?.map(item => ({
+    url: item.url || '',
+    imageUrl: item.imageUrl,
+    title: item.title || 'Untitled',
+    source: {
+      name: item.source?.name || 'Unknown Source'
+    },
+    formattedDate: item.formattedDate || 'No date'
+  })) || []
+  */
 
   // If there's no data, show placeholders
   if (!articles || articles.length === 0) {
@@ -32,48 +60,5 @@ export async function HomeNews() {
         View all Ghana news →
       </Link>
     </div>
-  )
-}
-
-// news-article-client.tsx (create this as a new file)
-"use client"
-
-import Link from "next/link"
-import Image from "next/image"
-import { ExternalLink } from "lucide-react"
-
-export function NewsArticleClient({ article }) {
-  return (
-    <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block">
-      <div className="border rounded-lg p-3 hover:shadow-md transition-shadow bg-white">
-        <div className="flex items-start gap-3">
-          {article.imageUrl && (
-            <div className="flex-shrink-0 w-16 h-16 relative overflow-hidden rounded-md">
-              <Image
-                src={article.imageUrl || "/placeholder.svg?height=64&width=64"}
-                alt={article.title}
-                fill
-                sizes="64px"
-                className="object-cover"
-                onError={(e) => {
-                  // Fallback to placeholder if image fails to load
-                  e.currentTarget.src = "/placeholder.svg?height=64&width=64"
-                }}
-              />
-            </div>
-          )}
-          <div className="flex-1">
-            <div className="flex justify-between items-start">
-              <h3 className="font-medium text-sm line-clamp-2 flex-1 mr-2">{article.title}</h3>
-              <ExternalLink className="h-4 w-4 flex-shrink-0 text-gray-400" />
-            </div>
-            <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
-              <span>{article.source.name}</span>
-              <span>{article.formattedDate}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Link>
   )
 }
