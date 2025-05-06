@@ -175,7 +175,7 @@ export const getHomePageTechNews = cache(async (): Promise<Article[]> => {
 export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
   const CACHE_KEY = "homepage-ghana-news"
   
-  // Check memory cache first
+  // Check memory cache first (fastest)
   const cachedData = memoryCache.get<Article[]>(CACHE_KEY)
   if (cachedData) {
     return cachedData
@@ -183,9 +183,8 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
   
   try {
     // Fetch from the same API endpoint used by the Ghana news tab
-    // Using proper static generation compatible fetch with revalidation
     const response = await fetch("/api/ghana-news", {
-      next: { revalidate: 3600 }, // Revalidate every hour
+      next: { revalidate: 3600 }, // Cache for 1 hour instead of no-store
     })
 
     if (!response.ok) {
@@ -199,7 +198,7 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
     }
 
     // Map the API response to our homepage article format (take only first 2)
-    const formattedArticles = data.articles.slice(0, 2).map((article: any) => ({
+    const articles = data.articles.slice(0, 2).map((article: any) => ({
       title: article.title,
       url: article.link,
       source: { name: article.source_name || "Ghana News" },
@@ -210,9 +209,9 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
     }))
     
     // Store in memory cache
-    memoryCache.set(CACHE_KEY, formattedArticles)
+    memoryCache.set(CACHE_KEY, articles)
     
-    return formattedArticles
+    return articles
   } catch (error) {
     console.error("Error fetching Ghana news for homepage:", error)
     return fallbackGhanaNews
