@@ -183,7 +183,7 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
 
   try {
     // Construct the absolute URL for the API endpoint
-    const baseUrl = process.env.BASE_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+    const baseUrl = process.env.BASE_URL || (typeof window !== "undefined" ? window.location.origin : "https://www.pulse.com.gh/rss");
     const apiUrl = `${baseUrl}/api/ghana-news`;
 
     console.log(`Fetching Ghana news from: ${apiUrl}`);
