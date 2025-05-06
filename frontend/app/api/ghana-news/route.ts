@@ -135,7 +135,7 @@ export async function GET() {
 
         const response = await fetch(rssUrl, {
           signal: controller.signal,
-          cache: "no-store",
+          next: { revalidate: 3600 }, // Revalidate every hour
           headers: {
             "User-Agent":
               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -158,7 +158,9 @@ export async function GET() {
 
     if (!xmlData) {
       console.error("All RSS sources failed")
-      return NextResponse.json(fallbackData)
+      return NextResponse.json(fallbackData, { 
+        headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } 
+      })
     }
 
     // Use cheerio to parse the XML
@@ -241,7 +243,9 @@ export async function GET() {
     // If we don't have enough articles, use fallback
     if (articles.length === 0) {
       console.log("No articles found, using fallback data")
-      return NextResponse.json(fallbackData)
+      return NextResponse.json(fallbackData, { 
+        headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } 
+      })
     }
 
     // Limit to 20 articles
@@ -255,9 +259,13 @@ export async function GET() {
       timestamp: now,
     }
 
-    return NextResponse.json(result)
+    return NextResponse.json(result, {
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
+    })
   } catch (error) {
     console.error("Error fetching Ghana news from RSS:", error)
-    return NextResponse.json(fallbackData)
+    return NextResponse.json(fallbackData, { 
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } 
+    })
   }
 }
