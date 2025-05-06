@@ -1,32 +1,9 @@
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { getHomePageTechNews } from "@/lib/news-utils"
-import Image from "next/image"
-import { useState, useEffect } from "react"
+import { NewsImage } from "@/components/news-image"
 
-// Create a Client Component for the Image with error handling
-"use client"
-function NewsImage({ src, alt, className }) {
-  const [imgSrc, setImgSrc] = useState(src)
-  
-  // Reset the image source if src prop changes
-  useEffect(() => {
-    setImgSrc(src)
-  }, [src])
-
-  return (
-    <Image
-      src={imgSrc}
-      alt={alt}
-      fill
-      sizes="64px"
-      className={className}
-      onError={() => setImgSrc("/placeholder.svg?height=64&width=64")}
-    />
-  )
-}
-
-// Back to Server Component code
+// Server Component
 export async function HomeTechNews() {
   const articles = await getHomePageTechNews()
 
