@@ -1,5 +1,4 @@
 import { cache } from "react"
-import * as cheerio from "cheerio"
 import { memoryCache } from "./memory-cache"
 
 // Define the article type
@@ -55,7 +54,7 @@ const fallbackGhanaNews: Article[] = [
   {
     title: "Ghana's Economy Shows Strong Growth in Q2 2025",
     url: "https://example.com/ghana-economy",
-    source: { name: "Pulse Ghana" },
+    source: { name: "Ghana News" },
     publishedAt: "2025-04-28T14:30:00Z",
     formattedDate: "April 28, 2025",
     description:
@@ -67,7 +66,7 @@ const fallbackGhanaNews: Article[] = [
   {
     title: "New Educational Reforms Announced by Ghana's Ministry of Education",
     url: "https://example.com/ghana-education",
-    source: { name: "Pulse Ghana" },
+    source: { name: "Ghana News" },
     publishedAt: "2025-04-27T09:15:00Z",
     formattedDate: "April 27, 2025",
     description:
@@ -80,11 +79,16 @@ const fallbackGhanaNews: Article[] = [
 
 // Helper function to format date
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
+  try {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  } catch (error) {
+    console.error("Error formatting date:", error)
+    return dateString
+  }
 }
 
 // Create a cached function to fetch tech news for the homepage
@@ -98,7 +102,7 @@ export const getHomePageTechNews = cache(async (): Promise<Article[]> => {
   }
 
   try {
-    const apiKey = process.env.NEXT_PUBLIC_NEWS_API_KEY
+    const apiKey = process.env.NEWS_API_KEY
     if (!apiKey) {
       console.error("NEWS_API_KEY is not defined")
       return fallbackTechNews
@@ -158,7 +162,7 @@ export const getHomePageTechNews = cache(async (): Promise<Article[]> => {
     }))
 
     // Store in memory cache
-    // memoryCache.set(CACHE_KEY, formattedArticles)
+    memoryCache.set(CACHE_KEY, formattedArticles)
 
     return formattedArticles
   } catch (error) {
@@ -167,140 +171,49 @@ export const getHomePageTechNews = cache(async (): Promise<Article[]> => {
   }
 })
 
-// Create a function to fetch Ghana news from Pulse Ghana RSS feed (always fetch fresh data)
-export const getHomePageGhanaNews = async (): Promise<Article[]> => {
+// Create a function to fetch Ghana news for the homepage
+export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
+  const CACHE_KEY = "homepage-ghana-news"
+  
+  // Check memory cache first (fastest)
+  const cachedData = memoryCache.get<Article[]>(CACHE_KEY)
+  if (cachedData) {
+    return cachedData
+  }
+  
   try {
-    const rssUrl = "https://www.pulse.com.gh/rss"
-    const response = await fetch(rssUrl)
+    // Fetch from the same API endpoint used by the Ghana news tab
+    const response = await fetch("/api/ghana-news", {
+      next: { revalidate: 3600 }, // Cache for 1 hour instead of no-store
+    })
 
     if (!response.ok) {
-      console.error(`RSS feed responded with status: ${response.status}`)
-      return fallbackGhanaNews
+      throw new Error(`Failed to fetch Ghana news: ${response.status}`)
     }
 
-    const xmlData = await response.text()
+    const data = await response.json()
 
-    // Use cheerio to parse the XML
-    const $ = cheerio.load(xmlData, {
-      xmlMode: true,
-    })
-
-    const articles: Article[] = []
-
-    // Process each item in the RSS feed
-    $("item").each((i, elem) => {
-      if (articles.length >= 2) return false // Only get 2 articles for homepage
-
-      // Extract the title (remove CDATA wrapper if present)
-      const titleRaw = $(elem).find("title").text()
-      const title = titleRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
-
-      // Extract the link
-      const url = $(elem).find("link").text().trim()
-
-      // Extract the publication date
-      const publishedAt = $(elem).find("pubDate").text().trim()
-
-      // Extract the description (remove CDATA wrapper if present)
-      const descriptionRaw = $(elem).find("description").text()
-      const description = descriptionRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
-
-      // Extract the category (remove CDATA wrapper if present)
-      const categoryRaw = $(elem).find("category").text()
-      const category = categoryRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
-
-      // Extract the author/creator (remove CDATA wrapper if present)
-      const authorRaw = $(elem).find("dc\\:creator").text()
-      const author = authorRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
-
-      // Extract the image URL
-      let imageUrl = $(elem).find("media\\:content").attr("url") || null
-
-      // If no media:content, try to find enclosure
-      if (!imageUrl) {
-        imageUrl = $(elem).find("enclosure").attr("url") || null
-      }
-
-      // If still no image, try to extract from description
-      if (!imageUrl && description) {
-        const imgMatch = description.match(/<img[^>]+src="([^">]+)"/i)
-        if (imgMatch && imgMatch[1]) {
-          imageUrl = imgMatch[1]
-        }
-      }
-
-      // Only include business and news categories, or if we can't determine the category
-      const lowerCategory = category.toLowerCase()
-      if (!category || lowerCategory === "business" || lowerCategory === "news") {
-        articles.push({
-          title,
-          url,
-          source: { name: "Pulse Ghana" },
-          publishedAt,
-          formattedDate: formatDate(publishedAt),
-          description,
-          imageUrl,
-          category,
-          author,
-        })
-      }
-    })
-
-    // If we don't have enough business/news items, include other categories
-    if (articles.length < 2) {
-      $("item").each((i, elem) => {
-        if (articles.length >= 2) return false // Stop once we have 2 articles
-
-        const titleRaw = $(elem).find("title").text()
-        const title = titleRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
-
-        // Skip if we already have this item
-        if (articles.some((item) => item.title === title)) {
-          return
-        }
-
-        const url = $(elem).find("link").text().trim()
-        const publishedAt = $(elem).find("pubDate").text().trim()
-        const descriptionRaw = $(elem).find("description").text()
-        const description = descriptionRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
-        const categoryRaw = $(elem).find("category").text()
-        const category = categoryRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
-        const authorRaw = $(elem).find("dc\\:creator").text()
-        const author = authorRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
-
-        // Extract the image URL
-        let imageUrl = $(elem).find("media\\:content").attr("url") || null
-
-        // If no media:content, try to find enclosure
-        if (!imageUrl) {
-          imageUrl = $(elem).find("enclosure").attr("url") || null
-        }
-
-        // If still no image, try to extract from description
-        if (!imageUrl && description) {
-          const imgMatch = description.match(/<img[^>]+src="([^">]+)"/i)
-          if (imgMatch && imgMatch[1]) {
-            imageUrl = imgMatch[1]
-          }
-        }
-
-        articles.push({
-          title,
-          url,
-          source: { name: "Pulse Ghana" },
-          publishedAt,
-          formattedDate: formatDate(publishedAt),
-          description,
-          imageUrl,
-          category,
-          author,
-        })
-      })
+    if (!data.articles || !Array.isArray(data.articles) || data.articles.length === 0) {
+      throw new Error("No articles found in Ghana news response")
     }
 
+    // Map the API response to our homepage article format (take only first 2)
+    const articles = data.articles.slice(0, 2).map((article: any) => ({
+      title: article.title,
+      url: article.link,
+      source: { name: article.source_name || "Ghana News" },
+      publishedAt: article.pubDate,
+      formattedDate: formatDate(article.pubDate),
+      imageUrl: article.imageUrl,
+      description: article.description,
+    }))
+    
+    // Store in memory cache
+    memoryCache.set(CACHE_KEY, articles)
+    
     return articles
   } catch (error) {
     console.error("Error fetching Ghana news for homepage:", error)
     return fallbackGhanaNews
   }
-}
+})
