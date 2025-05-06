@@ -193,32 +193,133 @@ export const getHomePageGhanaNews = cache(async (): Promise<Article[]> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch Ghana news: ${response.status}`);
+      throw new Error(`Failed to fetch Ghana news: ${response.status}`)
+      return fallbackGhanaNews
     }
 
-    const data = await response.json();
+    const xmlData = await response.text()
 
-    if (!data.articles || !Array.isArray(data.articles) || data.articles.length === 0) {
-      throw new Error("No articles found in Ghana news response");
+    // Use cheerio to parse the XML
+    const $ = cheerio.load(xmlData, {
+      xmlMode: true,
+    })
+
+    const articles: Article[] = []
+
+    // Process each item in the RSS feed
+    $("item").each((i, elem) => {
+      if (articles.length >= 2) return false // Only get 2 articles for homepage
+
+      // Extract the title (remove CDATA wrapper if present)
+      const titleRaw = $(elem).find("title").text()
+      const title = titleRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
+
+      // Extract the link
+      const url = $(elem).find("link").text().trim()
+
+      // Extract the publication date
+      const publishedAt = $(elem).find("pubDate").text().trim()
+
+      // Extract the description (remove CDATA wrapper if present)
+      const descriptionRaw = $(elem).find("description").text()
+      const description = descriptionRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
+
+      // Extract the category (remove CDATA wrapper if present)
+      const categoryRaw = $(elem).find("category").text()
+      const category = categoryRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
+
+      // Extract the author/creator (remove CDATA wrapper if present)
+      const authorRaw = $(elem).find("dc\\:creator").text()
+      const author = authorRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
+
+      // Extract the image URL
+      let imageUrl = $(elem).find("media\\:content").attr("url") || null
+
+      // If no media:content, try to find enclosure
+      if (!imageUrl) {
+        imageUrl = $(elem).find("enclosure").attr("url") || null
+      }
+
+      // If still no image, try to extract from description
+      if (!imageUrl && description) {
+        const imgMatch = description.match(/<img[^>]+src="([^">]+)"/i)
+        if (imgMatch && imgMatch[1]) {
+          imageUrl = imgMatch[1]
+        }
+      }
+
+      // Only include business and news categories, or if we can't determine the category
+      const lowerCategory = category.toLowerCase()
+      if (!category || lowerCategory === "business" || lowerCategory === "news") {
+        articles.push({
+          title,
+          url,
+          source: { name: "Pulse Ghana" },
+          publishedAt,
+          formattedDate: formatDate(publishedAt),
+          description,
+          imageUrl,
+          category,
+          author,
+        })
+      }
+    })
+
+    // If we don't have enough business/news items, include other categories
+    if (articles.length < 2) {
+      $("item").each((i, elem) => {
+        if (articles.length >= 2) return false // Stop once we have 2 articles
+
+        const titleRaw = $(elem).find("title").text()
+        const title = titleRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
+
+        // Skip if we already have this item
+        if (articles.some((item) => item.title === title)) {
+          return
+        }
+
+        const url = $(elem).find("link").text().trim()
+        const publishedAt = $(elem).find("pubDate").text().trim()
+        const descriptionRaw = $(elem).find("description").text()
+        const description = descriptionRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
+        const categoryRaw = $(elem).find("category").text()
+        const category = categoryRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
+        const authorRaw = $(elem).find("dc\\:creator").text()
+        const author = authorRaw.replace(/^\s*<!\[CDATA\[(.*)\]\]>\s*$/, "$1").trim()
+
+        // Extract the image URL
+        let imageUrl = $(elem).find("media\\:content").attr("url") || null
+
+        // If no media:content, try to find enclosure
+        if (!imageUrl) {
+          imageUrl = $(elem).find("enclosure").attr("url") || null
+        }
+
+        // If still no image, try to extract from description
+        if (!imageUrl && description) {
+          const imgMatch = description.match(/<img[^>]+src="([^">]+)"/i)
+          if (imgMatch && imgMatch[1]) {
+            imageUrl = imgMatch[1]
+          }
+        }
+
+        articles.push({
+          title,
+          url,
+          source: { name: "Pulse Ghana" },
+          publishedAt,
+          formattedDate: formatDate(publishedAt),
+          description,
+          imageUrl,
+          category,
+          author,
+        })
+      })
     }
 
-    // Map the API response to our homepage article format (take only first 2)
-    const articles = data.articles.slice(0, 2).map((article: any) => ({
-      title: article.title,
-      url: article.link,
-      source: { name: article.source_name || "Ghana News" },
-      publishedAt: article.pubDate,
-      formattedDate: formatDate(article.pubDate),
-      imageUrl: article.imageUrl,
-      description: article.description,
-    }));
-
-    // Store in memory cache
-    memoryCache.set(CACHE_KEY, articles);
-
-    return articles;
+    return articles
   } catch (error) {
-    console.error("Error fetching Ghana news for homepage:", error);
-    return fallbackGhanaNews;
+    console.error("Error fetching Ghana news for homepage:", error)
+    return fallbackGhanaNews
   }
-});
+}
