@@ -120,7 +120,6 @@ export async function GET() {
     // Try multiple RSS sources in case one fails
     const rssSources = [
       "https://www.myjoyonline.com/feed/",
-      "https://www.ghanaweb.com/GhanaHomePage/rss/ghana-news.xml",
       "https://www.pulse.com.gh/rss",
     ]
 
