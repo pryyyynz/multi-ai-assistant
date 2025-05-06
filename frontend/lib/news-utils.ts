@@ -1,5 +1,7 @@
 import { cache } from "react"
+import * as cheerio from "cheerio"
 import { memoryCache } from "./memory-cache"
+
 
 // Define the article type
 type Article = {
