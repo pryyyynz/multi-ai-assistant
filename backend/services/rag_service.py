@@ -48,8 +48,8 @@ class RAGService:
         if api:
             self.llm = ChatGroq(
                 api_key=api,
-                model_name="llama3-70b-8192", 
-                temperature=0.4
+                model_name="compound-beta", 
+                temperature=0.4,
             )
             logger.info("Using Groq for generation")
         else:
