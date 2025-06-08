@@ -64,5 +64,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'api-multi-ai-assistant'
+          app-name: 'multi-ai'
           slot-name: 'Production'
