@@ -8,6 +8,8 @@ on:
   push:
     branches:
       - server-dev
+    paths:
+      - 'backend/**'
   workflow_dispatch:
 
 jobs:
