@@ -26,7 +26,7 @@ jobs:
       
       - name: Install dependencies
         working-directory: ./backend
-        run: pip install --no-cache-dir memory, especially during the installation of --use-feature=fast-deps -r requirements.txt
+        run: pip install --no-cache-dir --use-feature=fast-deps -r requirements.txt
 
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
