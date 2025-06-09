@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 import logging
@@ -60,9 +61,73 @@ app.add_middleware(
     expose_headers=["X-Context-ID"]  # Expose context ID header for clients
 )
 
+# Add a root endpoint for the application
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    """Root endpoint providing basic information about the API"""
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Multi AI API</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 40px auto;
+                max-width: 800px;
+                padding: 20px;
+                line-height: 1.6;
+                color: #333;
+            }
+            h1, h2 {
+                color: #0066cc;
+            }
+            ul {
+                margin-left: 20px;
+            }
+            .endpoint {
+                background-color: #f4f4f4;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }
+            footer {
+                margin-top: 40px;
+                font-size: 0.8em;
+                color: #666;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Multi AI API</h1>
+        <p>Welcome to the Multi AI API. This service provides various AI-powered capabilities through REST endpoints.</p>
+        
+        <h2>Available Endpoints</h2>
+        <ul>
+            <li class="endpoint"><strong>Document Q&A:</strong> Upload documents and ask questions about them</li>
+            <li class="endpoint"><strong>Cover Letter Generation:</strong> Generate customized cover letters</li>
+            <li class="endpoint"><strong>CV Analysis:</strong> Analyze and optimize resumes/CVs</li>
+            <li class="endpoint"><strong>Ghana LLM:</strong> Ghana-specific AI assistant</li>
+        </ul>
+        
+        <h2>API Documentation</h2>
+        <p>For detailed API documentation, visit <a href="/docs">/docs</a> or <a href="/redoc">/redoc</a></p>
+        
+        <footer>
+            &copy; 2025 Multi AI Assistant
+        </footer>
+    </body>
+    </html>
+    """
+    return html_content
+
+@app.get("/health", response_class=JSONResponse)
+async def health_check():
+    """Health check endpoint for monitoring services"""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
 # Initialize services on startup
-
-
 @app.on_event("startup")
 async def startup_event():
     # Initialize job matching service and preload embeddings

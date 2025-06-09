@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 def init_db():
     """Initialize the database and create all tables"""
     try:
-        logger.info("Database initialization disabled - auth and feedback endpoints removed")
+        logger.info(
+            "Database initialization disabled - auth and feedback endpoints removed")
         # Database initialization disabled to avoid errors with removed models
         # Base.metadata.create_all(bind=engine)
         # logger.info("Database tables created successfully")
