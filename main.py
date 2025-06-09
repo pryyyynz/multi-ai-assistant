@@ -1,24 +1,9 @@
 import os
-from fastapi import FastAPI, Depends, BackgroundTasks
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
-from dotenv import load_dotenv
-from contextlib import asynccontextmanager
 import logging
-import asyncio
 from datetime import datetime
-
-from routes.documents_qa import router as document_qa_router
-from routes.cover_letter import cover_letter_router
-# Authentication and feedback routers removed for deployment
-# from routes.auth_router import router as auth_router
-# from routes.feedback import router as feedback_router
-from services.api_key_validation import get_groq_api_key
-from services.job_matching_service import JobMatchingService
-from routes import cv_analyzer
-from routes import chat_router
-from services.rag_service import RAGService
-from database.init_db import init_db
 
 # Configure logging
 logging.basicConfig(
@@ -27,44 +12,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Load environment variables
-load_dotenv()
+# Create FastAPI app instance
+app = FastAPI(title="Multi AI API")
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Initialize services on startup
-    logger.info("Starting Multi AI API")
-
-    # Initialize database first
-    logger.info("Initializing database from lifespan context manager")
-    init_db()
-
-    # Check environment variables
-    if not os.getenv("GROQ_API_KEY"):
-        logger.warning("GROQ_API_KEY environment variable not set")
-
-    yield
-
-    # Clean up on shutdown
-    logger.info("Shutting down Multi AI API")
-
-app = FastAPI(lifespan=lifespan, title="Multi AI API")
-
-# Add CORS middleware to allow your frontend to communicate with the API
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Update this with your frontend URL in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["X-Context-ID"]  # Expose context ID header for clients
 )
 
 # Add a root endpoint for the application
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Root endpoint providing basic information about the API"""
+    logger.info("Root endpoint called")
     html_content = """
     <!DOCTYPE html>
     <html>
@@ -79,96 +43,36 @@ async def root():
                 line-height: 1.6;
                 color: #333;
             }
-            h1, h2 {
+            h1 {
                 color: #0066cc;
-            }
-            ul {
-                margin-left: 20px;
-            }
-            .endpoint {
-                background-color: #f4f4f4;
-                padding: 10px;
-                border-radius: 5px;
-                margin-bottom: 10px;
-            }
-            footer {
-                margin-top: 40px;
-                font-size: 0.8em;
-                color: #666;
-                text-align: center;
             }
         </style>
     </head>
     <body>
         <h1>Multi AI API</h1>
-        <p>Welcome to the Multi AI API. This service provides various AI-powered capabilities through REST endpoints.</p>
-        
-        <h2>Available Endpoints</h2>
-        <ul>
-            <li class="endpoint"><strong>Document Q&A:</strong> Upload documents and ask questions about them</li>
-            <li class="endpoint"><strong>Cover Letter Generation:</strong> Generate customized cover letters</li>
-            <li class="endpoint"><strong>CV Analysis:</strong> Analyze and optimize resumes/CVs</li>
-            <li class="endpoint"><strong>Ghana LLM:</strong> Ghana-specific AI assistant</li>
-        </ul>
-        
-        <h2>API Documentation</h2>
-        <p>For detailed API documentation, visit <a href="/docs">/docs</a> or <a href="/redoc">/redoc</a></p>
-        
-        <footer>
-            &copy; 2025 Multi AI Assistant
-        </footer>
+        <p>Welcome to the Multi AI API. The service is running successfully.</p>
+        <p>For API documentation, visit <a href="/docs">/docs</a></p>
     </body>
     </html>
     """
     return html_content
 
-@app.get("/health", response_class=JSONResponse)
+@app.get("/health")
 async def health_check():
     """Health check endpoint for monitoring services"""
+    logger.info("Health check endpoint called")
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
-# Initialize services on startup
-@app.on_event("startup")
-async def startup_event():
-    # Initialize job matching service and preload embeddings
-    job_service = JobMatchingService()
-    await job_service.initialize_embeddings()
-    logger.info("Job matching service initialized")
-
-# Include routers
-# 1. Document Q&A router using MCP architecture
-app.include_router(
-    document_qa_router,
-    tags=["Document Q&A"]
-)
-# 2. Cover letter router
-app.include_router(
-    cover_letter_router,
-    dependencies=[Depends(get_groq_api_key)]
-)
-# 3. CV analyzer router
-app.include_router(
-    cv_analyzer.router,
-    tags=["CV Analysis"]
-)
-# 4. chatbot router
-app.include_router(
-    chat_router.router,
-    prefix="/ghana",  # Add a prefix to avoid route collisions
-    tags=["Ghana LLM"]
-)
-# Authentication and feedback routers removed for deployment
-# 5. Authentication router
-# app.include_router(
-#     auth_router,
-#     tags=["Authentication"]
-# )
-# 6. Feedback router
-# app.include_router(
-#     feedback_router,
-#     tags=["Feedback"]
-# )
+# Simple test endpoint
+@app.get("/test")
+async def test_endpoint():
+    """Test endpoint to verify routing is working"""
+    logger.info("Test endpoint called")
+    return {"message": "API is working correctly"}
 
 if __name__ == "__main__":
+    # When run directly, use port 8080 (DigitalOcean's default)
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=80, reload=True)
+    port = int(os.environ.get("PORT", 8080))
+    logger.info(f"Starting application on port {port}")
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
