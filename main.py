@@ -9,8 +9,9 @@ from datetime import datetime
 
 from routes.documents_qa import router as document_qa_router
 from routes.cover_letter import cover_letter_router
-from routes.auth_router import router as auth_router
-from routes.feedback import router as feedback_router
+# Authentication and feedback routers removed for deployment
+# from routes.auth_router import router as auth_router
+# from routes.feedback import router as feedback_router
 from services.api_key_validation import get_groq_api_key
 from services.job_matching_service import JobMatchingService
 from routes import cv_analyzer
@@ -91,16 +92,17 @@ app.include_router(
     prefix="/ghana",  # Add a prefix to avoid route collisions
     tags=["Ghana LLM"]
 )
+# Authentication and feedback routers removed for deployment
 # 5. Authentication router
-app.include_router(
-    auth_router,
-    tags=["Authentication"]
-)
+# app.include_router(
+#     auth_router,
+#     tags=["Authentication"]
+# )
 # 6. Feedback router
-app.include_router(
-    feedback_router,
-    tags=["Feedback"]
-)
+# app.include_router(
+#     feedback_router,
+#     tags=["Feedback"]
+# )
 
 if __name__ == "__main__":
     import uvicorn
