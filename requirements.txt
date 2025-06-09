@@ -7,7 +7,7 @@ python-multipart~=0.0.9
 
 # LangChain and LLM dependencies
 langchain~=0.3.24
-langchain-community~=0.3.24
+langchain-community<0.3
 langchain-core~=0.3.55
 langchain-groq~=0.3.2
 langchain-text-splitters~=0.3.8
