@@ -1,5 +1,5 @@
-# Use Python 3.12.8 as base image
-FROM python:3.12.8-slim
+# Use Python 3.10 as base image
+FROM python:3.10-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only requirements.txt first to leverage Docker cache
-COPY ./backend/requirements.txt /app/requirements.txt
+COPY requirements.txt /app/requirements.txt
 
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
@@ -31,8 +31,8 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 RUN pip uninstall -y torch torchvision \
     && pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
-# Copy the backend directory content into the container
-COPY ./backend /app/
+# Copy the application code into the container
+COPY . /app/
 
 # Make port available to the world outside this container
 EXPOSE 8080
