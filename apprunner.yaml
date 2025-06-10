@@ -14,7 +14,7 @@ build:
     - name: PYTHONPATH
       value: "."
 run:
-  runtime-version: 3.11.12
+  # runtime-version: 3.11.12
   command: python -m uvicorn main:app --host 0.0.0.0 --port 8080
   network:
     port: 8080
