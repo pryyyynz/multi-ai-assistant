@@ -25,6 +25,8 @@ app.add_middleware(
 )
 
 # Add a root endpoint for the application
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Root endpoint providing basic information about the API"""
@@ -57,6 +59,7 @@ async def root():
     """
     return html_content
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint for monitoring services"""
@@ -64,6 +67,8 @@ async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 # Simple test endpoint
+
+
 @app.get("/test")
 async def test_endpoint():
     """Test endpoint to verify routing is working"""
