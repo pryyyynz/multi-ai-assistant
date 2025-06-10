@@ -2,8 +2,25 @@ version: 1.0
 runtime: python3
 build:
   commands:
-   build:        
-      - pip install pipenv
-      - pipenv install
-run: 
-  command: python main.py
+    pre-build:
+      - apt-get update
+      - apt-get install -y build-essential gcc g++ libpq-dev python3-dev git
+    build:
+      - pip install --upgrade pip setuptools wheel
+      - pip install --no-cache-dir -r requirements.txt
+    post-build:
+      - python -c "import fastapi; print(f'FastAPI successfully installed: {fastapi.__version__}')"
+  env:
+    - name: PYTHONPATH
+      value: "."
+run:
+  runtime-version: 3.7.7
+  command: python -m uvicorn main:app --host 0.0.0.0 --port 8080
+  network:
+    port: 8080
+    env: PORT
+  env:
+    - name: PYTHONUNBUFFERED
+      value: "1"
+    - name: PORT
+      value: "8080"
