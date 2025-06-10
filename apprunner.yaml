@@ -6,10 +6,10 @@ build:
       # - apt-get update
       # - apt-get install -y build-essential gcc g++ libpq-dev python3-dev git
     build:
-      - pip install --upgrade pip setuptools wheel
-      - pip install --no-cache-dir -r requirements.txt
+      - pip install pipenv
+      - pipenv install
     post-build:
-      - echo "Verifying FastAPI installation"
+      - python main.py
   env:
     - name: PYTHONPATH
       value: "."
