@@ -6,8 +6,7 @@ build:
       # - apt-get update
       # - apt-get install -y build-essential gcc g++ libpq-dev python3-dev git
     build:
-      - pip install pipenv
-      - pipenv install
+      - pip install -r requirements.txt
     post-build:
       - python main.py
   env:
