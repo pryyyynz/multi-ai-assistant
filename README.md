@@ -4,7 +4,7 @@
 
 Multi AI Assistant is a comprehensive platform that democratizes access to AI-powered tools and information about Ghana. We aim to bridge the technology gap by providing intuitive, accessible tools that leverage artificial intelligence to solve everyday problems for Ghanaians and those interested in Ghana.
 
-**Live Demo:** [Visit the App](https://kzmgu6rhixnxassgfkoq.lite.vusercontent.net)
+**Live Demo:** [Visit the App](https://services.multi-ai.software/)
 
 ## 🚀 Features
 
